@@ -1,0 +1,50 @@
+# Local development infrastructure: PostgreSQL + PostGIS and Redis.
+# Usage: see ops/README.md
+name: hotspot
+
+services:
+  postgres:
+    # PostgreSQL 18 + PostGIS 3.6. The tag does not include the PostgreSQL patch version,
+    # so the digest pins the exact image.
+    image: postgis/postgis:18-3.6@sha256:60f6ad1d21ea86a67d47780b9a0d1e1d200500f62b19293fa834d0dea80b8677
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-hotspot}
+      POSTGRES_USER: ${POSTGRES_SUPERUSER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_SUPERUSER_PASSWORD:?Set POSTGRES_SUPERUSER_PASSWORD in ops/compose/.env}
+      DB_MIGRATION_USER: ${DB_MIGRATION_USER:-hotspot_migrator}
+      DB_MIGRATION_PASSWORD: ${DB_MIGRATION_PASSWORD:?Set DB_MIGRATION_PASSWORD in ops/compose/.env}
+      DB_APP_USER: ${DB_APP_USER:-hotspot_app}
+      DB_APP_PASSWORD: ${DB_APP_PASSWORD:?Set DB_APP_PASSWORD in ops/compose/.env}
+    ports:
+      # 5433 by default, so it does not clash with a locally installed PostgreSQL on 5432
+      - "127.0.0.1:${POSTGRES_PORT:-5433}:5432"
+    volumes:
+      # Since PostgreSQL 18 the image keeps data under /var/lib/postgresql/<major>/docker,
+      # so the volume is mounted one level up.
+      - postgres-data:/var/lib/postgresql
+      # Mounted as a single file: the image already has 10_postgis.sh in this directory.
+      - ./initdb/20-roles.sh:/docker-entrypoint-initdb.d/20-roles.sh:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  redis:
+    image: redis:8.10.2-alpine
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  postgres-data:
+  redis-data:
