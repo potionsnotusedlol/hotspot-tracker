@@ -1,1 +1,36 @@
 .DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE
+.idea/
+*.iml
+*.iws
+out/
+.vscode/*
+!.vscode/extensions.json
+
+# Java / Gradle
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+*.class
+hs_err_pid*.log
+replay_pid*.log
+
+# Secrets
+.env
+.env.*
+!.env.example
+*.jks
+*.keystore
+*.p12
+
+# Data
+data/**/*.csv
+!data/data-2756-2025-06-09.csv
+ops/testdata-generator/output/
+
+# Logs
+*.log
+logs/
