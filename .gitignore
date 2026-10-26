@@ -9,6 +9,7 @@ desktop.ini
 out/
 .vscode/*
 !.vscode/extensions.json
+.metadata/
 
 # Java / Gradle
 .gradle/

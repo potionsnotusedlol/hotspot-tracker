@@ -1,0 +1,8 @@
+package ru.moscow.hotspot_tracker.main;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.autoconfigure.SpringBootApplication;
+
+@SpringBootApplication
+public class MainApplication { public static void main(String[] args) { SpringApplication.run(MainApplication.class, args); } }
+
