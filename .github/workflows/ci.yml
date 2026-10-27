@@ -1,0 +1,105 @@
+# CI entry point. Builds only the Gradle modules changed by the PR or push.
+# Make only the "CI result" check required in branch protection: it always reports,
+# even when no module was changed and the build jobs are skipped.
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  changes:
+    name: Detect changed modules
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    outputs:
+      modules: ${{ steps.detect.outputs.modules }}
+    steps:
+      - name: Check out
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
+      - name: Detect
+        id: detect
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: |
+          # Gradle modules; each one is a separate build with its own wrapper
+          all_modules="server client tgbot"
+
+          # Manual runs and pushes without a usable base build every module
+          if [ "$EVENT_NAME" = "workflow_dispatch" ] || [ -z "$BASE_SHA" ] \
+             || ! git cat-file -e "$BASE_SHA^{commit}" 2>/dev/null; then
+            changed="$all_modules"
+          else
+            files=$(git diff --name-only "$BASE_SHA" "$GITHUB_SHA")
+            changed=""
+            for m in $all_modules; do
+              # A change to the workflows rebuilds every module
+              if grep -qE "^($m/|\.github/workflows/)" <<< "$files"; then
+                changed="$changed $m"
+              fi
+            done
+          fi
+
+          # Modules without a Gradle wrapper yet are skipped
+          modules=()
+          for m in $changed; do
+            if [ -f "$m/gradlew" ]; then
+              modules+=("$m")
+            else
+              echo "::notice::$m has no Gradle wrapper yet, skipping"
+            fi
+          done
+
+          # Module names are plain directory names, so no JSON escaping is needed
+          if [ ${#modules[@]} -eq 0 ]; then
+            json='[]'
+          else
+            json=$(printf '"%s",' "${modules[@]}")
+            json="[${json%,}]"
+          fi
+          echo "Modules to build: $json"
+          echo "modules=$json" >> "$GITHUB_OUTPUT"
+
+  build:
+    name: ${{ matrix.module }}
+    needs: changes
+    if: ${{ needs.changes.outputs.modules != '[]' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        module: ${{ fromJSON(needs.changes.outputs.modules) }}
+    uses: ./.github/workflows/gradle-module.yml
+    with:
+      module: ${{ matrix.module }}
+
+  result:
+    name: CI result
+    needs: [changes, build]
+    if: ${{ always() }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Check results
+        env:
+          RESULTS: ${{ join(needs.*.result, ' ') }}
+        run: |
+          echo "Job results: $RESULTS"
+          for r in $RESULTS; do
+            case "$r" in
+              success|skipped) ;;
+              *) echo "::error::A CI job finished with: $r"; exit 1 ;;
+            esac
+          done
