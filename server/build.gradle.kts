@@ -9,7 +9,11 @@ version = "0.0.1-SNAPSHOT"
 
 java {
 	toolchain {
+<<<<<<< HEAD
 		languageVersion = JavaLanguageVersion.of(27)
+=======
+		languageVersion = JavaLanguageVersion.of(25)
+>>>>>>> origin/master
 	}
 }
 
@@ -36,12 +40,15 @@ dependencies {
 	implementation("org.springframework.modulith:spring-modulith-starter-core")
 	implementation("org.springframework.modulith:spring-modulith-starter-jpa")
 	implementation("org.thymeleaf.extras:thymeleaf-extras-springsecurity6")
+<<<<<<< HEAD
 	implementation("org.apache.poi:poi:5.2.5")
 	implementation("org.apache.poi:poi-ooxml:5.2.5")
 	implementation("org.webjars:webjars-locator-core")
 	implementation("org.webjars:htmx.org:1.9.10")
 	implementation("org.webjars:chart.js:4.4.1")
 	implementation("org.webjars:leaflet:1.9.4")
+=======
+>>>>>>> origin/master
 	developmentOnly("org.springframework.boot:spring-boot-docker-compose")
 	runtimeOnly("org.postgresql:postgresql")
 	runtimeOnly("org.springframework.modulith:spring-modulith-actuator")

@@ -1,0 +1,30 @@
+# The team works on Windows, while builds and containers run on Linux.
+# The repository stores LF; git converts text to the OS line endings on checkout.
+* text=auto
+
+# Executed or read inside Linux containers and CI: always LF
+*.sh         text eol=lf
+gradlew      text eol=lf
+*.yml        text eol=lf
+*.yaml       text eol=lf
+*.sql        text eol=lf
+*.properties text eol=lf
+Dockerfile   text eol=lf
+
+# Windows scripts: always CRLF
+*.bat        text eol=crlf
+*.cmd        text eol=crlf
+*.ps1        text eol=crlf
+
+# Test fixtures are stored byte for byte: they intentionally contain CRLF, Windows-1251, BOM
+**/src/test/resources/**/*.csv  -text
+ops/testdata/**                 -text
+
+# Binary files
+*.zip        binary
+*.jar        binary
+*.xlsx       binary
+*.pdf        binary
+*.png        binary
+*.jpg        binary
+*.ico        binary
