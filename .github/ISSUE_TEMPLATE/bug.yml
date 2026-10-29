@@ -1,0 +1,69 @@
+name: Bug report
+description: Report a defect
+title: "[Bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Do not paste tokens, passwords, keys or personal data (emails, Telegram IDs, chat messages). Use placeholders: `<TOKEN>`, `user@example.com`.
+  - type: dropdown
+    id: module
+    attributes:
+      label: Module
+      options:
+        - server
+        - client (web)
+        - tgbot
+        - android
+        - ops (CI, environments, monitoring)
+    validations:
+      required: true
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severity
+      options:
+        - Critical - system or key feature unavailable, data loss, vulnerability
+        - High - feature works incorrectly, no workaround
+        - Medium - a workaround exists
+        - Low - cosmetic, texts
+    validations:
+      required: true
+  - type: input
+    id: requirement
+    attributes:
+      label: Requirement
+      description: Requirement ID from the spec, if applicable
+      placeholder: FR-CAT-02
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. ...
+        2. ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected result
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual result
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Branch or commit, stand or local, browser or Android version
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs and screenshots
+      render: text

@@ -1,1 +1,6 @@
-.DS_Store
+local.properties
+.cxx/
+.externalNativeBuild/
+captures/
+*.apk
+*.aab
