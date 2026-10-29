@@ -1,4 +1,4 @@
-package ru.moscow.hostspot_tracker.main;
+package ru.moscow.hotspot_tracker.main;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
