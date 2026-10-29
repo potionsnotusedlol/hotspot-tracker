@@ -1,0 +1,56 @@
+# Reusable workflow: builds and tests one Gradle module (a directory with its own gradlew).
+# Called from ci.yml; not triggered on its own.
+name: Gradle module
+
+on:
+  workflow_call:
+    inputs:
+      module:
+        description: Directory of the Gradle build, e.g. server
+        required: true
+        type: string
+      java-version:
+        description: JDK version used to run Gradle
+        required: false
+        type: string
+        default: "25"
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build and test
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: ${{ inputs.module }}
+    steps:
+      - name: Check out
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up JDK ${{ inputs.java-version }}
+        uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
+        with:
+          distribution: temurin
+          java-version: ${{ inputs.java-version }}
+
+      # Caches Gradle dependencies and validates the wrapper JAR checksum
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6.4.0
+
+      # build = compile + unit and integration tests (Testcontainers uses the runner's Docker)
+      - name: Build and test
+        run: ./gradlew build --console=plain
+
+      - name: Upload test reports
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: ${{ inputs.module }}-test-reports
+          path: |
+            ${{ inputs.module }}/build/reports/
+            ${{ inputs.module }}/build/test-results/
+          if-no-files-found: ignore
+          retention-days: 14
