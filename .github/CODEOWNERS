@@ -1,0 +1,33 @@
+# Telegram
+
+tgbot/ @Riri4ek053
+
+# server side
+
+server/src/main/* @VasyaSamosval22 @Turbofen156
+server/src/test/* @VasyaSamosval22 @Turbofen156
+
+# client side
+
+client/ @Turbofen156 @temychem
+android/ @Mother-nud-jpg
+
+# ops
+
+.gitattributes @Tsaryapkin00
+.gitignore @Tsaryapkin00
+*.yaml @Tsaryapkin00
+*.yml @Tsaryapkin00
+.editorconfig @Tsaryapkin00
+ops/ @Tsaryapkin00
+.github/ @Tsaryapkin00
+*gradle* @Tsaryapkin00
+
+# documentation
+
+docs/*
+data/ @nobodyallowed
+
+README.MD @potionsnotusedlol
+* @potionsnotusedlol
+loadtests/ @potionsnotusedlol
