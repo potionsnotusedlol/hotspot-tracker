@@ -1,165 +1,118 @@
 package ru.moscow.hotspot_tracker.main.importing;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.PushbackReader;
 import java.nio.charset.Charset;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
-/** Reads one CSV record at a time, including the header record. */
+/**
+ * Контракт потокового чтения CSV-файлов для FR-IMP-01 (до 10⁷ записей).
+ *
+ * <p>Записи, включая заголовок, последовательно передаются обработчику.
+ * Файл не загружается целиком, обработанные записи не накапливаются.
+ * Память читателя зависит от размера текущей записи, а не от размера файла.
+ * Логическая запись может занимать несколько физических строк.
+ *
+ * <p>Кодировка и разделитель задаются вызывающим кодом. Их определение относится
+ * к FR-IMP-02. Сопоставление колонок, проверка предметных данных и сохранение
+ * в БД выполняются за пределами читателя.
+ *
+ * <p>Это каркас без реализации. Заглушки выбрасывают
+ * {@link UnsupportedOperationException}; описанное поведение задаёт контракт
+ * будущей реализации.
+ */
 public final class CsvRecordReader {
 
+    /**
+     * Одна логическая CSV-запись, включая запись заголовка.
+     *
+     * <p>Список полей должен быть неизменяемым снимком: изменение исходного списка
+     * и последующее чтение не меняют ранее созданную запись. Внешние кавычки
+     * удаляются, экранированные кавычки декодируются, пробелы сохраняются.
+     * Переводы строк внутри значений нормализуются в {@code '\n'}.
+     *
+     * @param number порядковый номер записи с 1; заголовок имеет номер 1
+     * @param sourceLine физическая строка начала записи, начиная с 1
+     * @param fields значения колонок в исходном порядке, без {@code null};
+     *               пустые значения представлены пустой строкой
+     */
     public record Record(long number, long sourceLine, List<String> fields) {
+
+        /**
+         * Создаёт запись с защитной неизменяемой копией списка полей.
+         *
+         * @param number порядковый номер записи
+         * @param sourceLine физическая строка начала записи
+         * @param fields исходный список значений колонок
+         * @throws NullPointerException если список или его элемент равен {@code null}
+         * @throws UnsupportedOperationException пока конструктор не реализован
+         */
         public Record {
-            fields = List.copyOf(fields);
+            throw new UnsupportedOperationException("Контракт: создание записи ещё не реализовано");
         }
     }
 
+    /**
+     * Синхронный обработчик записей, вызываемый в порядке чтения файла.
+     *
+     * <p>Если обработчик сохраняет записи, он сам отвечает за расход памяти.
+     * Его ошибка прерывает чтение без повторной передачи записи.
+     */
     @FunctionalInterface
     public interface RecordHandler {
+
+        /**
+         * Обрабатывает очередную запись, включая заголовок.
+         *
+         * @param record прочитанная запись, никогда не {@code null}
+         * @throws IOException если обработку необходимо прервать из-за ошибки ввода-вывода
+         */
         void accept(Record record) throws IOException;
     }
 
     /**
-     * Passes records to the handler without retaining previous records. The caller chooses the
-     * charset and delimiter; selection and detection of these belong to FR-IMP-02.
-     * Newlines inside quoted fields are represented as '\n'.
+     * Читает CSV-файл, передавая каждую запись обработчику ровно один раз.
      *
-     * @return number of records passed to the handler, including the header
+     * <p>Правила формата:
+     * <ul>
+     *   <li>Заголовок передаётся как первая запись. Пустой файл даёт 0 записей.</li>
+     *   <li>Начальный BOM {@code U+FEFF} не включается в первое поле.</li>
+     *   <li>LF, CRLF и CR считаются одним физическим переводом строки каждый,
+     *       в том числе внутри поля в кавычках.</li>
+     *   <li>Поле может быть заключено в двойные кавычки. Внутри допускаются
+     *       разделитель и переводы строк; две кавычки обозначают одну кавычку.</li>
+     *   <li>Кавычка внутри некавыченного поля, посторонний символ после закрывающей
+     *       кавычки и незакрытое поле в кавычках считаются ошибками CSV.</li>
+     *   <li>Пустые поля, включая последнее поле после разделителя, сохраняются.
+     *       Пустая строка даёт запись с одним пустым полем.</li>
+     *   <li>Последняя запись передаётся и без завершающего перевода строки.
+     *       Завершающий перевод строки не создаёт дополнительную запись.</li>
+     *   <li>Количество колонок не проверяется, пробелы не обрезаются,
+     *       типы значений не преобразуются.</li>
+     * </ul>
+     *
+     * <p>Читатель самостоятельно открывает и закрывает файл, в том числе при ошибке.
+     * Ошибка CSV представляется как {@link IOException} с путём файла, физической
+     * строкой и причиной. Для незакрытого поля указывается строка начала записи.
+     * Ранее переданные записи не откатываются.
+     *
+     * <p>Исключение обработчика немедленно прекращает чтение и передаётся вызывающему
+     * коду без подмены. Следующие записи обработчику не передаются.
+     *
+     * @param path путь к CSV-файлу, не {@code null}
+     * @param charset явно выбранная кодировка, не {@code null}
+     * @param delimiter разделитель колонок; двойная кавычка, CR и LF запрещены
+     * @param handler обработчик записей, не {@code null}
+     * @return число успешно переданных записей, включая заголовок
+     * @throws NullPointerException если {@code path}, {@code charset} или
+     *                              {@code handler} равен {@code null}
+     * @throws IllegalArgumentException если задан запрещённый разделитель
+     * @throws IOException при ошибке открытия, чтения или закрытия файла,
+     *                     некорректном CSV либо ошибке обработчика
+     * @throws UnsupportedOperationException пока чтение не реализовано;
+     *         заглушка не открывает файл и не проверяет параметры
      */
     public long read(Path path, Charset charset, char delimiter, RecordHandler handler) throws IOException {
-        Objects.requireNonNull(path, "path");
-        Objects.requireNonNull(charset, "charset");
-        Objects.requireNonNull(handler, "handler");
-        if (delimiter == '"' || delimiter == '\r' || delimiter == '\n') {
-            throw new IllegalArgumentException("Invalid CSV delimiter");
-        }
-
-        try (BufferedReader buffered = Files.newBufferedReader(path, charset);
-             NormalizedReader reader = new NormalizedReader(buffered)) {
-            List<String> fields = new ArrayList<>();
-            StringBuilder field = new StringBuilder();
-            State state = State.START_FIELD;
-            long recordNumber = 0;
-            long sourceLine = 1;
-            boolean recordStarted = false;
-            int ch;
-
-            while ((ch = reader.read()) != -1) {
-                // A UTF BOM belongs to the file, not to the first column name.
-                if (ch == '\uFEFF' && recordNumber == 0 && !recordStarted) {
-                    continue;
-                }
-                recordStarted = true;
-                switch (state) {
-                    case START_FIELD -> {
-                        if (ch == '"') {
-                            state = State.QUOTED;
-                        } else if (ch == delimiter) {
-                            fields.add("");
-                        } else if (ch == '\n') {
-                            fields.add("");
-                            handler.accept(new Record(++recordNumber, sourceLine, fields));
-                            fields.clear();
-                            sourceLine = reader.lineNumber();
-                            recordStarted = false;
-                        } else {
-                            field.append((char) ch);
-                            state = State.UNQUOTED;
-                        }
-                    }
-                    case UNQUOTED -> {
-                        if (ch == delimiter || ch == '\n') {
-                            fields.add(field.toString());
-                            field.setLength(0);
-                            state = State.START_FIELD;
-                            if (ch == '\n') {
-                                handler.accept(new Record(++recordNumber, sourceLine, fields));
-                                fields.clear();
-                                sourceLine = reader.lineNumber();
-                                recordStarted = false;
-                            }
-                        } else if (ch == '"') {
-                            throw malformed(path, reader.lineNumber(), "Quote inside an unquoted field");
-                        } else {
-                            field.append((char) ch);
-                        }
-                    }
-                    case QUOTED -> {
-                        if (ch == '"') {
-                            state = State.AFTER_QUOTE;
-                        } else {
-                            field.append((char) ch);
-                        }
-                    }
-                    case AFTER_QUOTE -> {
-                        if (ch == '"') {
-                            field.append('"');
-                            state = State.QUOTED;
-                        } else if (ch == delimiter || ch == '\n') {
-                            fields.add(field.toString());
-                            field.setLength(0);
-                            state = State.START_FIELD;
-                            if (ch == '\n') {
-                                handler.accept(new Record(++recordNumber, sourceLine, fields));
-                                fields.clear();
-                                sourceLine = reader.lineNumber();
-                                recordStarted = false;
-                            }
-                        } else {
-                            throw malformed(path, reader.lineNumber(), "Unexpected character after closing quote");
-                        }
-                    }
-                }
-            }
-
-            if (state == State.QUOTED) {
-                throw malformed(path, sourceLine, "Unclosed quoted field");
-            }
-            if (recordStarted) {
-                fields.add(field.toString());
-                handler.accept(new Record(++recordNumber, sourceLine, fields));
-            }
-            return recordNumber;
-        }
-    }
-
-    private static IOException malformed(Path path, long line, String reason) {
-        return new IOException("Malformed CSV in " + path + " at line " + line + ": " + reason);
-    }
-
-    private enum State { START_FIELD, UNQUOTED, QUOTED, AFTER_QUOTE }
-
-    /** Treats CRLF and CR as one line break so source line numbers remain consistent. */
-    private static final class NormalizedReader extends PushbackReader {
-        private long lineNumber = 1;
-
-        private NormalizedReader(BufferedReader reader) {
-            super(reader, 1);
-        }
-
-        @Override
-        public int read() throws IOException {
-            int ch = super.read();
-            if (ch == '\r') {
-                int next = super.read();
-                if (next != '\n' && next != -1) {
-                    super.unread(next);
-                }
-                ch = '\n';
-            }
-            if (ch == '\n') {
-                lineNumber++;
-            }
-            return ch;
-        }
-
-        private long lineNumber() {
-            return lineNumber;
-        }
+        throw new UnsupportedOperationException("Контракт: чтение CSV ещё не реализовано");
     }
 }
