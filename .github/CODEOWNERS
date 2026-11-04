@@ -1,0 +1,23 @@
+# server side
+
+server/src/* @VasyaSamosval22 @Turbofen156
+
+# client side
+
+client/ @Turbofen156 @temychem
+android/ @Mother-nud-jpg
+tgbot/ @Riri4ek053
+
+# ops
+
+.gitattributes @Tsaryapkin00
+*.yaml @Tsaryapkin00
+*.yml @Tsaryapkin00
+.editorconfig @Tsaryapkin00
+ops/ @Tsaryapkin00
+.github/ @Tsaryapkin00
+*gradle* @Tsaryapkin00
+
+# documentation
+
+data/ @nobodyallowed
