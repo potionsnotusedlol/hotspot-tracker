@@ -14,6 +14,7 @@ out/
 # Java / Gradle
 .gradle/
 build/
+*.jar
 !gradle/wrapper/gradle-wrapper.jar
 *.class
 hs_err_pid*.log
