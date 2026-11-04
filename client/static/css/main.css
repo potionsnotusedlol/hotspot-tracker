@@ -1,0 +1,223 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+/* ↑ Убираем стандартные отступы со всех элементов
+   box-sizing делает расчёт ширины правильно */
+
+html {
+    scroll-behavior: smooth;
+}
+/* ↑ Плавная прокрутка при клике на ссылку якоря */
+
+body {
+    font-family: var(--font-primary);
+    /* ↑ Используем переменную из variables.css */
+    color: var(--text-primary);
+    background-color: var(--bg-white);
+    line-height: 1.6;
+    /* ↑ Расстояние между строками текста */
+}
+
+.container {
+    max-width: 1200px;
+    /* ↑ Максимальная ширина контента 1200px */
+    margin: 0 auto;
+    /* ↑ Центрируем горизонтально */
+    padding: 0 var(--spacing-lg);
+    /* ↑ Отступы слева и справа */
+}
+
+header {
+    background-color: var(--primary-color);
+    color: white;
+    padding: var(--spacing-md) 0;
+    position: sticky;
+    /* ↑ Шапка остаётся вверху при прокрутке */
+    top: 0;
+    z-index: var(--z-header);
+    /* ↑ Выше всего остального */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    /* ↑ Тень под шапкой */
+}
+
+header h1 {
+    font-size: var(--font-size-xl);
+}
+
+.main-content {
+    min-height: calc(100vh - 200px);
+    /* ↑ Минимум на весь экран, но не меньше */
+    padding: var(--spacing-2xl) 0;
+}
+
+.hero {
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+    /* ↑ Градиент: 135 градусов от светлого синего к тёмному */
+    color: white;
+    padding: var(--spacing-2xl) 0;
+    text-align: center;
+}
+
+.hero h1 {
+    font-size: var(--font-size-2xl);
+    margin-bottom: var(--spacing-md);
+}
+
+.subtitle {
+    font-size: var(--font-size-lg);
+    margin-bottom: var(--spacing-2xl);
+    opacity: 0.9;
+    /* ↑ Немного прозрачный (90% видимости) */
+}
+
+.hero-buttons {
+    display: flex;
+    /* ↑ Гибкая раскладка (кнопки в строку) */
+    gap: var(--spacing-md);
+    /* ↑ Расстояние между кнопками */
+    justify-content: center;
+    /* ↑ Центрируем кнопки */
+    flex-wrap: wrap;
+    /* ↑ Кнопки переносятся на новую строку на мобильных */
+}
+
+.btn {
+    display: inline-block;
+    padding: var(--spacing-md) var(--spacing-lg);
+    border-radius: 4px;
+    text-decoration: none;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: all 0.3s ease;
+    /* ↑ Плавное изменение при наведении */
+}
+
+.btn-primary {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.btn-primary:hover {
+    background-color: var(--primary-dark);
+    transform: translateY(-2px);
+    /* ↑ Кнопка приподнимается на 2px при наведении */
+    box-shadow: 0 4px 12px rgba(0, 102, 204, 0.3);
+    /* ↑ Тень под кнопкой */
+}
+
+.btn-secondary {
+    background-color: transparent;
+    /* ↑ Прозрачный фон */
+    color: white;
+    border: 2px solid white;
+}
+
+.btn-secondary:hover {
+    background-color: white;
+    color: var(--primary-color);
+}
+
+.features {
+    background-color: var(--bg-light);
+    padding: var(--spacing-2xl) 0;
+}
+
+.features h2 {
+    text-align: center;
+    margin-bottom: var(--spacing-2xl);
+    font-size: var(--font-size-2xl);
+}
+
+.features-grid {
+    display: grid;
+    /* ↑ CSS Grid - раскладка сеткой */
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    /* ↑ Автоматически создаёт столбцы по 250px, расширяющиеся */
+    gap: var(--spacing-lg);
+}
+
+.feature-card {
+    background: white;
+    padding: var(--spacing-lg);
+    border-radius: 8px;
+    /* ↑ Скруглённые углы */
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease;
+}
+
+.feature-card:hover {
+    transform: translateY(-4px);
+    /* ↑ При наведении карточка поднимается */
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+.feature-card h3 {
+    margin-bottom: var(--spacing-md);
+    color: var(--primary-color);
+}
+
+footer {
+    background-color: var(--text-primary);
+    color: white;
+    padding: var(--spacing-xl) 0;
+    text-align: center;
+    margin-top: auto;
+}
+
+footer p {
+    margin: var(--spacing-sm) 0;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: var(--spacing-lg) 0;
+}
+
+th {
+    background-color: var(--primary-color);
+    color: white;
+    padding: var(--spacing-md);
+    text-align: left;
+}
+
+td {
+    padding: var(--spacing-md);
+    border-bottom: 1px solid var(--border-color);
+}
+
+tr:hover {
+    background-color: var(--bg-light);
+    /* ↑ Строка подсвечивается при наведении */
+}
+
+.form-group {
+    margin-bottom: var(--spacing-lg);
+}
+
+label {
+    display: block;
+    margin-bottom: var(--spacing-sm);
+    font-weight: 600;
+}
+
+input, select, textarea {
+    width: 100%;
+    padding: var(--spacing-md);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    font-family: var(--font-primary);
+    font-size: var(--font-size-base);
+}
+
+input:focus, select:focus, textarea:focus {
+    outline: none;
+    /* ↑ Убираем стандартный outline */
+    border-color: var(--primary-color);
+    /* ↑ Граница становится синей */
+    box-shadow: 0 0 0 3px var(--primary-light);
+    /* ↑ Светлая тень вокруг */
+}
