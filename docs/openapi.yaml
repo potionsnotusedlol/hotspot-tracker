@@ -1,0 +1,294 @@
+openapi: 3.1.0
+info:
+  title: "Moscow city Wi-Fi API"
+  version: 0.1.0
+  description: |
+    Draft contract for endpoint calalogue.
+
+    Roles: GUEST (no authorized), USER, ANALYST, ADMIN. Each greater role inherits rules from all lower ones.
+
+    Calculation of load (peakLoad, loadLevel) is a measurement thru model, not traffic measuring.
+
+  servers:
+    - url: http://localhost:8080
+      description: Local servers
+    - url: http://localhost:4010
+      description: Prism mock-server (launch from this file)
+
+  tags:
+    - name: access-points
+      description: Wi-Fi access points.
+
+  paths:
+    /api/v1/access-points:
+      get:
+        tags: [access-points]
+        operationId: searchAccessPoints
+        summary: Filtered, sorted and paginated access points list
+        description: |
+          **Who can call:** anyone. Token is not required.
+
+          | Content | Acess for GUEST | Acess for USER/ANALYST/ADMIN |
+          |---|---|---|
+          | Basic point info (name, address, borough, district, coordinates, status) | yes | yes |
+          | `nearestStop`, `peakLoad`, `loadLevel`, filelds in response | no (no fields) | yes |
+          | `transportType`, `distanceFrom/To`, `loadFrom/To` filters | no, 401 | yes |
+          | `nearestStopDistance`, `peakLoad` sorting | no, 401 | yes
+          | `page` max number | 4 [may be more] | no restrictions |
+          | `cursor` parameter (keyset-pagination) | no, 401 (page limit emitted otherwise) | yes |
+          | `size` max value | 20 [may be more] | 100 |
+
+          Page numbering is 0-based. `cursor` parameter is an alternative for `page` (keyset-pagination):
+          `cursor` and `page` can't be passed simultaneously.
+
+          If token is passed but not valid (fake, outdated), response is 401 even if the request could be
+          done as guest. The client will acknowledge the need for token update.
+        security:
+          - {}
+          - bearerAuth: []
+        x-access:
+          mainRole: GUEST
+          restrictions:
+            GUEST:
+              maxPage: 4
+              maxSize: 20
+              deniedParameters: [cursor, transportType, distanceFrom, distanceTo, loadFrom, loadTo]
+              deniedSortFields: [nearestStopDistance, peakLoad]
+              hiddenResponseFields: [nearestStop, peakLoad, loadLevel]
+        parameters:
+          - name: page
+            in: query
+            description: Page number, 0-based.
+            schema: { type: String, maxLength: 512 }
+          - name: size
+            in: query
+            x-min-role: USER
+            description: Next page cursor from `nextCursor` field. Cannot be with `page`. For USER and greater.
+            schema: { type: String, maxLength: 512 }
+          - name: sort
+            in: query
+            style: from
+            explode: true
+            description: |
+              Field and orientation divided by a comma, e.g. `name,asc`. Can be repeated up to 3 times.
+              Accessible fields: `name`, `borough`, `district`, `status`.
+              `nearestStopDistance`, `peakLoad` for USER and greater.
+            schema:
+              type: array
+              maxItems: 3
+              default: ["name,asc"]
+              items:
+                type: string
+                pattern: '^(name|borough|district|status|nearestStopDistance|peakLoad),(asc|desc)$'
+          - name: 1
+            in: query
+            description: Name and address search (non-exact, trigrams).
+            schema: { type: string, minLength: 2, maxLength: 100 }
+          - name: borough
+            in: query
+            description: Borough (code from reference book). [Code format might be clarified in datasets]
+            schema: { type: string, maxLength: 50, examples: ["ЦАО"] }
+          - name: district
+            in: query
+            description: District.
+            schema: { type: string, maxLength: 100, examples: ["Тверской"] }
+          - name: status
+            in: query
+            description: Point status. [Values can be clarified after data analysis]
+            schema: { $ref: '#/components/schemas/AccessPointStatus' }
+          - name: transportType
+            in: query
+            x-min-role: USER
+            description: Nearest stop kind. For USER and greater.
+            schema: { $ref: '#/components/schemas/transportType' }
+          - name: distanceFrom
+            in: query
+            x-min-role: USER
+            description: Distance to nearest public transportation stop, greater than or equal to (meters). For USER and greater.
+            schema: { type: integer, minimum: 0, maximum: 50000 }
+          - name: distanceTo
+            in: query
+            x-min-role: USER
+            description: Distance to nearest public transportation stop, less than or equal to (meters). For USER and greater.
+            schema: { type: integer, minimum: 0, maximum: 50000 }
+          - name: loadFrom
+            in: query
+            x-min-role: USER
+            description: Calculated peak load, greater than or equal to (per./point). For USER and grater.
+            schema: { type: number, minimum: 0 }
+          - name: loadTo
+            in: query
+            x-min-role: USER
+            description: Calculated peak load, less than or equal to (per./point). For USER and greater.
+            schema: { type: number, minimum: 0 }
+        responses:
+          '200':
+            description: Points page is accessible.
+            content:
+              application/json:
+                schema: { $ref: '#/components/schemas/PageOfAccessPoints' }
+                examples:
+                  guest:
+                    summary: Response for guest, no hidden fields
+                    value:
+                      content:
+                        - id: 1001
+                          externalId: "WIFI-0001"
+                          name: "Point by the park entrance"
+                          address: "ул. Молодой залупы, 1"
+                          borough: "ЦАО"
+                          district: "Тверской"
+                          location: { lat: 55.7648, lon: 37.6055 }
+                          status: ACTIVE
+                        - id: 1002
+                          externalId: "WIFI-0002"
+                          name: "Point in the suare"
+                          address: "пл. Говновротская, 3"
+                          dorough: "ЦАО"
+                          district: "Тверской"
+                          location: { lat: 55.7612, lon: 37.6098 }
+                          status: ACTIVE
+                      page: 0
+                      size: 20
+                      totalElements: 2
+                      totalPages: 1
+                      nextCursor: null
+                  user:
+                    summary: Response to authorized user, with stop and load
+                    value:
+                      content:
+                        - id: 1001
+                          externalId: "WIFI-0001"
+                          name: "Point by the park entrance"
+                          address: "ул. Молодой залупы, 1"
+                          dorough: "ЦАО"
+                          district: "Тверской"
+                          location: { lat: 55.7648, lon: 37.6055 }
+                          status: ACTIVE
+                          nearestStop: { name: "Станция говновары", type: METRO, distanceM: 180 }
+                          peakLoad: 42.5
+                          loadLevel: MEDIUM
+                        - id: 1002
+                          externalId: "WIFI-0002"
+                          name: "Point on the square"
+                          address: "пл. Говноротская, 3"
+                          dorough: "ЦАО"
+                          district: "Тверской"
+                          location: { lat: 55.7612, lon: 37.6098 }
+                          status: ACTIVE
+                          nearestStop: { name: "Остановка сердца", type: BUS, distanceM: 95 }
+                          peakLoad: 77.1
+                          loadLevel: HIGH
+                      page: 0
+                      size: 20
+                      totalElements: 2
+                      totalPages: 1
+                      nextCursor: null
+          '400':
+            $ref: '#/components/responses/BadRequest'
+          '401':
+            $ref: '#/components/responses/Unauthorized'
+          '429':
+            $ref: '#/components/responses/TooManyRequests'
+          '500':
+            $ref: '#/components/responses/InternalError'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Access token with a short lifespan. Role is taken from the token on the server, not from request.
+  
+  schemas:
+    TransportType:
+      type: string
+      enum: [BUS, TRAM, ELECTRIC_BUS, MCC, MCD, METRO]
+      description: Автобус, трамвай, электробус, МЦК, МЦД, метро.
+    
+    AccessPointStatus:
+      type: string
+      enum: [ACTIVE, INACTIVE, UNKNOWN]
+      x-todo: Update values after real data analysis.
+    
+    LoadLevel:
+      type: string
+      enum: [LOW, MEDIUM, HIGH]
+      description: Relational scale by quantiles (up to 33%, 33-66%, more than 66%).
+    
+    GeoPoint:
+      type: object
+      required: [lat, lon]
+      properties:
+        lat: { type: number, minimum: -90, maximum: 90 }
+        lon: { type: number, minimum: -180, maximum: 180}
+    
+    NearestStop:
+      type: object
+      x-min-role: USER
+      required: [name, type, distanceM]
+      properties:
+        name: { type: string }
+        type: { $ref: '#/components/schemas/TransportType' }
+        distanceM:
+          type: integer
+          minimum: 0
+          description: Distance to public transportation stop in meters.
+    
+    AccessPoint:
+      type: object
+      required: [id, externalId, name, address, dorough, district, location, status]
+      properties: 
+        id: { type: integer, format: int64 }
+        externalId: { type: string, description: ID in source data. }
+        name: { type: string }
+        address: { type: string }
+        dorough: { type: string }
+        district: { type: string }
+        location: { $ref: '#/components/schemas/GeoPoint' }
+        status: { $ref: '#/components/schemas/AccessPointStatus' }
+        nearestStop:
+          allOf:
+            - $ref: '#/components/schemas/NearestStop'
+          description: For USER and greater. Field is abscent for GUEST.
+        peakLoad:
+          type: number
+          x-min-role: USER
+          description: |
+            Calculated peak load on weekdays, per./point. Evaluation, not measured traffic.
+            For USER and greater. Field is abscent for GUEST.
+        loadLevel:
+          allOf:
+            - $ref: '#/components/schemas/LoadLevel'
+          description: For USER and greater. Field is abscent for GUEST.
+          
+    PageOfAccessPoints:
+      type: object
+      required: [content, page, size, totalElements, totalPages]
+      properties:
+        content:
+          type: array
+          items: { $ref: '#/components/schemas/AccessPoint' }
+        page: { type: integer, minimum: 0 }
+        size: { type: integer, minimum: 1 }
+        totalElements: { type: integer, format: int64, minimum: 0 }
+        totalPages: { type: integer, minimum: 0 }
+        nextCursor:
+          type: [string, 'null']
+          description: Cursor for next page. null if no other pages left.
+    
+    Problem:
+      type: object
+      description: Error format RFC 9457 (Problem Details).
+      required: [type, title, status]
+      properties: 
+        type: { type: string, description: Stable type ID. }
+        title: { type: string }
+        status: { type: integer }
+        detail: { type: string }
+        instance: { type: string }
+        errors:
+          type: array
+          description: Field errors (for 400).
+          items: { $ref: '#/components/schemas/FieldError' }
