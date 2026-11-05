@@ -262,7 +262,7 @@ components:
           allOf:
             - $ref: '#/components/schemas/LoadLevel'
           description: For USER and greater. Field is abscent for GUEST.
-          
+
     PageOfAccessPoints:
       type: object
       required: [content, page, size, totalElements, totalPages]
@@ -292,3 +292,83 @@ components:
           type: array
           description: Field errors (for 400).
           items: { $ref: '#/components/schemas/FieldError' }
+
+    FieldError:
+      type: object
+      required: [field, message]
+      properties: 
+        field: { type: string }
+        message: { type: string }
+
+  responses:
+    BadRequest:
+      description: Invalid parameters of a request (format, range, mutually-exclusive parameters).
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+          example:
+            type: /problems/validation-error
+            title: Invalid request parameters
+            status: 400
+            detail: One or more parameters did not pass validation.
+            instance: /api/v1/access-points
+            errors:
+              - { field: size, message: "must be no greater than 100" }
+
+    Unauthorized:
+      description: |
+        Login is needed or the token is expired. Differ by `type`:
+        `/problems/login-required` (guest requested a user-level ability),
+        `/problems/token-invalid` (token fake or expired).
+      headers:
+        WWW-Authenticate:
+          schema: { type: string }
+          description: Authentication scheme (Bearer).
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+          examples:
+            loginRequired:
+              summary: Guest used inaccessible filter
+              value:
+                type: /problems/login-required
+                title: Login required
+                status: 401
+                detail: Parameter loadForm is accessible only to authorized users.
+                instance: /api/v1/access-points
+            tokenInvalid:
+              summary: Token expired
+              value:
+                type: /problems/token-invalid
+                title: Token expired
+                status: 401
+                detail: Token is expired. Update token.
+                instance: /api/v1/access-points
+
+    TooManyRequests:
+      description: Request count limit is exceeded.
+      headers:
+        Retry-After:
+          schema: { type: integer, minimum: 1 }
+          description: Amount of waiting time to repeat the request.
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+          example:
+            type: /problems/rate-limit
+            title: Too many TooManyRequests
+            status: 429
+            detail: Retry the request later.
+            instance: /api/v1/access-points
+
+    InternalError:
+      description: Server internal error. Details in logs only, clients don't get them.
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+          example:
+            type: /problems/internal
+            title: Internal error
+            status: 500
+            instance: /api/v1/access-points
+            
