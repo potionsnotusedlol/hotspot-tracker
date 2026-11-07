@@ -10,7 +10,7 @@ import ru.moscow.hotspot_tracker.auth.dto.RegisterRequest;
 
 /**
  * HTTP-контракт регистрации и входа (FR-AUTH-01).
- * Базовый путь /api/v1/auth. Реализация появится после согласования.
+ * 
  */
 @RequestMapping("/api/v1/auth")
 public interface AuthController {
