@@ -1,13 +1,22 @@
 package ru.moscow.hotspot_tracker.main.importing;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.Reader;
+import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
 import java.nio.charset.Charset;
+import java.nio.charset.CharsetDecoder;
+import java.nio.charset.CoderResult;
+import java.nio.charset.CodingErrorAction;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
- * Контракт потокового CSV-ридера для FR-IMP-01/05/08. Реализация отсутствует.
+ * Потоковый CSV-ридер для FR-IMP-01/05/08.
  *
  * <p>Читатель не накапливает файл, принятые записи или ошибки. Размер текущего
  * поля и всей записи ограничивается параметрами вызова. Обработчики вызываются
@@ -29,10 +38,10 @@ import java.util.List;
  * не гарантирует отсутствие OOM. Пределы должны учитывать накладные расходы
  * объектов, копирование значений и буферы исходного текста для отчёта об ошибках.
  *
- * <p>Будущая реализация должна использовать буферизацию; одной буферизации
+ * <p>Чтение и декодирование буферизованы; одной буферизации
  * недостаточно для подтверждения скорости посимвольного чтения. NFR-PERF-04 требует
  * импорта 10⁶ строк за не более 10 минут на целевом стенде. Это критерий приёмки
- * всей цепочки импорта, а не результат измерения этого каркаса. Перед приёмкой
+ * всей цепочки импорта, а не результат измерения этого компонента. Перед приёмкой
  * необходимы замеры времени и пиковой памяти, включая файл с незакрытой кавычкой.
  */
 public final class CsvRecordReader {
@@ -59,10 +68,9 @@ public final class CsvRecordReader {
          * @param sourceLine физическая строка начала записи
          * @param fields исходный список значений
          * @throws NullPointerException если список или его элемент равен {@code null}
-         * @throws UnsupportedOperationException пока конструктор не реализован
          */
         public Record {
-            throw new UnsupportedOperationException("Not implemented");
+            fields = List.copyOf(fields);
         }
     }
 
@@ -191,9 +199,8 @@ public final class CsvRecordReader {
      * подстановки. Выбрасывается IOException с путём, кодировкой и физической
      * строкой первого недекодируемого участка, с исходным исключением в cause.
      * Буферизация не должна смещать диагностическую строку вперёд.
-     * Для этого будущая реализация должна отслеживать позицию декодирования;
-     * одного перехвата исключения BufferedReader с текущим счётчиком строк
-     * недостаточно. Это требование к реализации, а не возможность текущей заглушки.
+     * Декодер сначала отдаёт корректный префикс буфера, затем сообщает ошибку;
+     * строка определяется по уже обработанным символам.
      *
      * <p>Ошибки ввода-вывода и исключения любого обработчика прекращают чтение.
      * Исключение обработчика передаётся без подмены. Файл закрывается при любом
@@ -216,12 +223,271 @@ public final class CsvRecordReader {
      * @throws IllegalArgumentException если разделитель запрещён или пределы некорректны
      * @throws IOException при ошибке файла, декодирования или обработчика;
      *                     ошибки структуры CSV сообщаются через {@code rejectionHandler}
-     * @throws UnsupportedOperationException пока метод не реализован;
-     *         заглушка не проверяет аргументы, не открывает файл и не вызывает обработчики
      */
     public long read(Path path, Charset charset, char delimiter,
                      int maxFieldLength, int maxRecordLength,
                      RecordHandler handler, RejectionHandler rejectionHandler) throws IOException {
-        throw new UnsupportedOperationException("Not implemented");
+        validateArguments(path, charset, delimiter, maxFieldLength, maxRecordLength, handler, rejectionHandler);
+        long accepted = 0;
+        long number = 0;
+        try (InputStream stream = Files.newInputStream(path)) {
+            RejectedTextReader input = new RejectedTextReader(stream, path, charset);
+            int c = input.nextUnit();
+            if (c == '\uFEFF') c = input.nextUnit();
+            while (c != -1) {
+                if (c == '\n') {
+                    c = input.nextUnit();
+                    continue;
+                }
+                long sourceLine = input.unitLine;
+                number++;
+                List<String> fields = new ArrayList<>();
+                StringBuilder field = new StringBuilder();
+                StringBuilder raw = new StringBuilder();
+                // 0 — начало поля, 1 — обычное поле, 2 — внутри кавычек, 3 — после кавычки.
+                int state = 0;
+                long recordLength = 0;
+                while (true) {
+                    if (c == -1 || (c == '\n' && state != 2)) {
+                        if (c == -1 && state == 2) {
+                            handleRejectedRecord(input, raw, true, new RejectedRecord(number, sourceLine,
+                                    input.line, RejectionReason.UNCLOSED_QUOTE), rejectionHandler);
+                        } else {
+                            finishField(fields, field);
+                            handler.accept(new Record(number, sourceLine, fields));
+                            accepted++;
+                        }
+                        break;
+                    }
+                    boolean append = state == 2 ? c != '"'
+                            : state == 3 ? c == '"' : c != delimiter && c != '"';
+                    boolean invalidQuote = (state == 1 && c == '"')
+                            || (state == 3 && c != '"' && c != delimiter);
+                    RejectionReason reason = checkLimits(recordLength, field.length(), append,
+                            invalidQuote, maxFieldLength, maxRecordLength);
+                    // Сохраняется только ограниченный префикс, включая первый ошибочный символ.
+                    raw.append(input.unitText);
+                    if (reason != null) {
+                        handleRejectedRecord(input, raw, c == '\n',
+                                new RejectedRecord(number, sourceLine, input.unitLine, reason), rejectionHandler);
+                        break;
+                    }
+                    recordLength++;
+                    if (append) field.append((char) c);
+                    if (state == 2) {
+                        if (c == '"') state = 3;
+                    } else if (c == delimiter) {
+                        finishField(fields, field);
+                        state = 0;
+                    } else if (c == '"') {
+                        state = 2;
+                    } else {
+                        state = 1;
+                    }
+                    c = input.nextUnit();
+                }
+                c = input.nextUnit();
+            }
+        }
+        return accepted;
+    }
+
+    /** Проверяет настройки до открытия файла и вызова обработчиков. */
+    private static void validateArguments(Path path, Charset charset, char delimiter,
+                                          int fieldLimit, int recordLimit,
+                                          RecordHandler handler, RejectionHandler rejectionHandler) {
+        Objects.requireNonNull(path, "path");
+        Objects.requireNonNull(charset, "charset");
+        Objects.requireNonNull(handler, "handler");
+        Objects.requireNonNull(rejectionHandler, "rejectionHandler");
+        if (delimiter == '"' || delimiter == '\r' || delimiter == '\n') {
+            throw new IllegalArgumentException("Invalid delimiter");
+        }
+        if (fieldLimit <= 0 || recordLimit < fieldLimit) {
+            throw new IllegalArgumentException("Require 0 < maxFieldLength <= maxRecordLength");
+        }
+    }
+
+    /** Проверяет первый ошибочный символ, соблюдая приоритет причин из контракта. */
+    private static RejectionReason checkLimits(long recordLength, int fieldLength, boolean append,
+                                               boolean invalidQuote, int fieldLimit, int recordLimit) {
+        if (recordLength >= recordLimit) return RejectionReason.RECORD_TOO_LONG;
+        if (append && fieldLength >= fieldLimit) return RejectionReason.FIELD_TOO_LONG;
+        return invalidQuote ? RejectionReason.INVALID_QUOTE : null;
+    }
+
+    /** Завершает поле, включая пустое, и переиспользует его ограниченный буфер. */
+    private static void finishField(List<String> fields, StringBuilder field) {
+        fields.add(field.toString());
+        field.setLength(0);
+    }
+
+    /** Выдаёт временный поток ошибки и дочитывает остаток после нормального возврата. */
+    private static void handleRejectedRecord(RejectedTextReader input, CharSequence prefix,
+                                              boolean boundaryReached, RejectedRecord rejection,
+                                              RejectionHandler handler) throws IOException {
+        RejectedTextReader text = new RejectedTextReader(input, prefix, boundaryReached);
+        try {
+            handler.accept(rejection, text);
+            text.drain();
+        } finally {
+            text.active = false;
+            text.prefix = "";
+        }
+    }
+
+    /**
+     * Внутренний ввод и временное представление отклонённого участка.
+     * Корневой экземпляр декодирует фиксированными буферами и считает строки.
+     * Представление отдаёт сохранённый префикс и остаток до физического переноса;
+     * его закрытие не закрывает файл. Отдельный экземпляр на отклонение исключает
+     * повторное использование сохранённой обработчиком ссылки.
+     */
+    private static final class RejectedTextReader extends Reader {
+        private final RejectedTextReader source;
+        private final InputStream stream;
+        private final Path path;
+        private final CharsetDecoder decoder;
+        private final ByteBuffer bytes;
+        private final CharBuffer chars;
+        private CoderResult decodingError;
+        private boolean needInput = true;
+        private boolean eof;
+        private boolean decodedEnd;
+        private boolean flushed;
+        private int pending = -1;
+        private long line = 1;
+        private long unitLine = 1;
+        private String unitText = "";
+        private CharSequence prefix = "";
+        private int prefixPosition;
+        private boolean boundaryReached;
+        private boolean active = true;
+        private boolean closed;
+        private String tail = "";
+        private int tailPosition;
+
+        /** Создаёт буферизованный ввод; ресурсом файла владеет метод read(). */
+        private RejectedTextReader(InputStream stream, Path path, Charset charset) {
+            this.source = null;
+            this.stream = stream;
+            this.path = path;
+            this.decoder = charset.newDecoder().onMalformedInput(CodingErrorAction.REPORT)
+                    .onUnmappableCharacter(CodingErrorAction.REPORT);
+            this.bytes = ByteBuffer.allocate(8192);
+            this.chars = CharBuffer.allocate(4096);
+            bytes.limit(0);
+            chars.limit(0);
+        }
+
+        /** Создаёт ограниченное представление без копирования исходного префикса. */
+        private RejectedTextReader(RejectedTextReader source, CharSequence prefix, boolean boundaryReached) {
+            this.source = source;
+            this.prefix = prefix;
+            this.boundaryReached = boundaryReached;
+            this.stream = null;
+            this.path = null;
+            this.decoder = null;
+            this.bytes = null;
+            this.chars = null;
+        }
+
+        /** Возвращает нормализованный символ, сохраняя исходный CR/LF для отчёта. */
+        private int nextUnit() throws IOException {
+            unitLine = line;
+            int c = pending >= 0 ? pending : nextDecodedChar();
+            pending = -1;
+            if (c == -1) {
+                unitText = "";
+                return -1;
+            }
+            if (c == '\r') {
+                line++;
+                int next = nextDecodedChar();
+                unitText = next == '\n' ? "\r\n" : "\r";
+                if (next != '\n') pending = next;
+                return '\n';
+            }
+            unitText = String.valueOf((char) c);
+            if (c == '\n') line++;
+            return c;
+        }
+
+        /** Отдаёт корректные символы перед ошибкой, чтобы её строка не зависела от буфера. */
+        private int nextDecodedChar() throws IOException {
+            while (!chars.hasRemaining()) {
+                if (decodingError != null) {
+                    try {
+                        decodingError.throwException();
+                    } catch (java.nio.charset.CharacterCodingException cause) {
+                        throw new IOException(path + ": invalid " + decoder.charset().name()
+                                + " at line " + line, cause);
+                    }
+                }
+                if (flushed) return -1;
+                if (needInput && !eof) {
+                    bytes.compact();
+                    int count = stream.read(bytes.array(), bytes.position(), bytes.remaining());
+                    if (count == -1) eof = true;
+                    else bytes.position(bytes.position() + count);
+                    bytes.flip();
+                }
+                chars.clear();
+                CoderResult result;
+                if (decodedEnd) {
+                    result = decoder.flush(chars);
+                    flushed = result.isUnderflow();
+                } else {
+                    result = decoder.decode(bytes, chars, eof);
+                    needInput = result.isUnderflow();
+                    decodedEnd = eof && result.isUnderflow();
+                }
+                if (result.isError()) decodingError = result;
+                chars.flip();
+            }
+            return chars.get();
+        }
+
+        /** Читает исходный текст участка; EOF здесь не означает EOF исходного файла. */
+        @Override
+        public int read(char[] buffer, int offset, int length) throws IOException {
+            Objects.checkFromIndexSize(offset, length, buffer.length);
+            if (!active || closed) throw new IOException("Rejected text is no longer available");
+            if (length == 0) return 0;
+            int count = 0;
+            while (count < length) {
+                int c = readRejectedChar();
+                if (c == -1) break;
+                buffer[offset + count++] = (char) c;
+            }
+            return count == 0 ? -1 : count;
+        }
+
+        /** Читает префикс и потоковый остаток без накопления повреждённой записи. */
+        private int readRejectedChar() throws IOException {
+            if (prefixPosition < prefix.length()) return prefix.charAt(prefixPosition++);
+            if (tailPosition < tail.length()) return tail.charAt(tailPosition++);
+            if (boundaryReached) return -1;
+            int c = source.nextUnit();
+            boundaryReached = c == -1 || c == '\n';
+            if (c == -1) return -1;
+            tail = source.unitText;
+            tailPosition = 1;
+            return tail.charAt(0);
+        }
+
+        /** Пропускает непрочитанное даже после закрытия представления обработчиком. */
+        private void drain() throws IOException {
+            prefixPosition = prefix.length();
+            while (readRejectedChar() != -1) {
+                // Исходный файл читается фиксированными буферами, остаток не сохраняется.
+            }
+        }
+
+        /** Закрывает только представление, не исходный файл. */
+        @Override
+        public void close() {
+            closed = true;
+        }
     }
 }
