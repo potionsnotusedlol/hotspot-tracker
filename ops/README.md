@@ -73,6 +73,21 @@ docker compose -f ops/compose/docker-compose.yml exec redis redis-cli ping
 
 The roles and the `postgis` and `pg_trgm` extensions are created by `compose/initdb/20-roles.sh`.
 
+### API mock server
+
+Prism serves the example responses from `docs/openapi.yaml`, so clients can be built before the backend is ready. It needs the same `.env` file and a non-empty `docs/openapi.yaml`. It only starts with the `mock` profile:
+
+```sh
+docker compose -f ops/compose/docker-compose.yml --profile mock up -d mock
+curl "http://localhost:4010/api/v1/access-points?page=0&size=2"
+docker compose -f ops/compose/docker-compose.yml --profile mock rm -sf mock
+```
+
+- Android emulator: use `http://10.0.2.2:4010`.
+- After changing `docs/openapi.yaml`, recreate the container (`up -d --force-recreate mock`).
+- Answers are static examples: there is no real data, login or permission check. Use the backend for anything that depends on them.
+- Contract problems found while serving a response are printed in the log: `docker compose -f ops/compose/docker-compose.yml --profile mock logs mock`.
+
 ### Stop and reset
 
 ```sh
@@ -84,6 +99,6 @@ The init script runs only on the first start with an empty data volume. After ch
 
 ### Troubleshooting
 
-- **`address already in use` / a service stays in `Created`:** the host port is taken (often by a locally installed PostgreSQL or Redis). Change `POSTGRES_PORT` or `REDIS_PORT` in `.env` and run `up -d` again.
-- **Mac with Apple Silicon:** the PostGIS image is published for amd64 only, so it runs under emulation (Docker Desktop prints a platform warning). It works, just slower; keep "Use Rosetta for x86_64/amd64 emulation" enabled in Docker Desktop settings.
+- **`address already in use` / a service stays in `Created`:** the host port is taken (often by a locally installed PostgreSQL or Redis). Change `POSTGRES_PORT`, `REDIS_PORT` or `MOCK_PORT` in `.env` and run `up -d` again.
+- **Mac with Apple Silicon:** the PostGIS and Prism images are published for amd64 only, so they run under emulation (Docker Desktop prints a platform warning). They work, just slower; keep "Use Rosetta for x86_64/amd64 emulation" enabled in Docker Desktop settings.
 - **Image pull fails or hangs:** Docker Hub may be slow or unreachable from some networks. Configure a registry mirror in the Docker daemon settings (`registry-mirrors` in `/etc/docker/daemon.json` or in Docker Desktop settings) and retry.
