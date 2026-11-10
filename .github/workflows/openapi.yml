@@ -1,0 +1,54 @@
+# Checks docs/openapi.yaml: linting and backward compatibility with the base branch (NFR-MNT-03).
+name: OpenAPI
+
+on:
+  pull_request:
+    paths:
+      - docs/openapi.yaml
+      - .spectral.yaml
+      - .github/workflows/openapi.yml
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: Lint and compatibility
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      checks: write
+    steps:
+      - name: Check out
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
+      # The file on the base branch may still be empty, then there is nothing to compare with
+      - name: Get the base version
+        id: base
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          git show "$BASE_SHA:docs/openapi.yaml" > base-openapi.yaml || true
+          [ -s base-openapi.yaml ] && has_base=true || has_base=false
+          [ -s docs/openapi.yaml ] && has_spec=true || has_spec=false
+          echo "has_base=$has_base" >> "$GITHUB_OUTPUT"
+          echo "has_spec=$has_spec" >> "$GITHUB_OUTPUT"
+
+      - name: Lint
+        if: ${{ steps.base.outputs.has_spec == 'true' }}
+        uses: stoplightio/spectral-action@6416fd018ae38e60136775066eb3e98172143141 # v0.8.13
+        with:
+          file_glob: docs/openapi.yaml
+          spectral_ruleset: .spectral.yaml
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Find breaking changes
+        if: ${{ steps.base.outputs.has_spec == 'true' && steps.base.outputs.has_base == 'true' }}
+        uses: oasdiff/oasdiff-action/breaking@8a211b41745fcecdfa4a86531ffbf08934fb14f6 # v0.1.23
+        with:
+          base: base-openapi.yaml
+          revision: docs/openapi.yaml
+          fail-on: ERR
