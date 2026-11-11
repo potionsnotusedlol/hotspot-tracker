@@ -1,12 +1,17 @@
 package ru.moscow.hotspot_tracker.main.importing;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * Контракт FR-IMP-03: настраиваемое сопоставление колонок CSV целевым полям.
- * Связанная задача: Issue #23. Реализация отсутствует: операции и конструкторы
- * с проверками являются заглушками и выбрасывают UnsupportedOperationException.
+ * Контракт: Issue #23. Реализация: Issue #32.
  *
  * <p>Сначала вызывающий код передаёт конфигурацию набора и первую запись-заголовок
  * в {@link #resolve}. Полученный план переиспользуется для записей этого файла.
@@ -45,10 +50,12 @@ public final class CsvColumnMapper {
          *
          * @throws NullPointerException если имя равно null
          * @throws IllegalArgumentException если имя пустое или состоит из пробелов
-         * @throws UnsupportedOperationException пока конструктор не реализован
          */
         public ColumnMapping {
-            throw new UnsupportedOperationException("Not implemented");
+            Objects.requireNonNull(sourceColumn, "sourceColumn");
+            Objects.requireNonNull(targetField, "targetField");
+            requireNonBlank(sourceColumn, "sourceColumn");
+            requireNonBlank(targetField, "targetField");
         }
     }
 
@@ -76,10 +83,23 @@ public final class CsvColumnMapper {
          * @throws NullPointerException если datasetId, список или элемент равен null
          * @throws IllegalArgumentException если datasetId blank, список пуст,
          *         targetField повторяется или headerRecords отличается от 1 и 2
-         * @throws UnsupportedOperationException пока конструктор не реализован
          */
         public Options {
-            throw new UnsupportedOperationException("Not implemented");
+            Objects.requireNonNull(datasetId, "datasetId");
+            columns = List.copyOf(columns);
+            requireNonBlank(datasetId, "datasetId");
+            if (columns.isEmpty()) {
+                throw new IllegalArgumentException("columns must not be empty");
+            }
+            if (headerRecords != 1 && headerRecords != 2) {
+                throw new IllegalArgumentException("headerRecords must be 1 or 2");
+            }
+            var targets = new HashSet<String>();
+            for (ColumnMapping column : columns) {
+                if (!targets.add(column.targetField())) {
+                    throw new IllegalArgumentException("Duplicate target field");
+                }
+            }
         }
     }
 
@@ -100,10 +120,15 @@ public final class CsvColumnMapper {
          *
          * @throws NullPointerException если аргумент или элемент списка равен null
          * @throws ConfigurationException если заголовок или индексы не согласованы с options
-         * @throws UnsupportedOperationException пока конструктор не реализован
          */
         public ResolvedMapping {
-            throw new UnsupportedOperationException("Not implemented");
+            Objects.requireNonNull(options, "options");
+            header = List.copyOf(header);
+            sourceIndexes = List.copyOf(sourceIndexes);
+            List<Integer> expected = resolveIndexes(options, header);
+            if (!sourceIndexes.equals(expected)) {
+                throw new ConfigurationException(options.datasetId(), ConfigurationFailure.INVALID_PLAN);
+            }
         }
     }
 
@@ -122,10 +147,15 @@ public final class CsvColumnMapper {
          *
          * @throws NullPointerException если карта, её ключ или значение равны null
          * @throws IllegalArgumentException если number или sourceLine меньше 1
-         * @throws UnsupportedOperationException пока конструктор не реализован
          */
         public MappedRecord {
-            throw new UnsupportedOperationException("Not implemented");
+            Objects.requireNonNull(values, "values");
+            var snapshot = new LinkedHashMap<String, String>();
+            values.forEach((key, value) -> snapshot.put(
+                    Objects.requireNonNull(key, "targetField"),
+                    Objects.requireNonNull(value, "value")));
+            requireMetadata(number, sourceLine);
+            values = Collections.unmodifiableMap(snapshot);
         }
     }
 
@@ -158,6 +188,7 @@ public final class CsvColumnMapper {
      */
     public static final class ConfigurationException extends IllegalArgumentException {
         private static final long serialVersionUID = 1L;
+        private final ConfigurationFailure reason;
 
         /**
          * Создаёт ошибку с машиночитаемой причиной.
@@ -166,15 +197,15 @@ public final class CsvColumnMapper {
          * @param reason причина, не null
          * @throws NullPointerException если аргумент равен null
          * @throws IllegalArgumentException если datasetId blank
-         * @throws UnsupportedOperationException пока конструктор не реализован
          */
         public ConfigurationException(String datasetId, ConfigurationFailure reason) {
-            throw new UnsupportedOperationException("Not implemented");
+            super(configurationMessage(datasetId, reason));
+            this.reason = reason;
         }
 
-        /** @return причина ошибки; заглушка выбрасывает UnsupportedOperationException */
+        /** @return причина ошибки */
         public ConfigurationFailure reason() {
-            throw new UnsupportedOperationException("Not implemented");
+            return reason;
         }
     }
 
@@ -186,6 +217,9 @@ public final class CsvColumnMapper {
      */
     public static final class RecordMappingException extends Exception {
         private static final long serialVersionUID = 1L;
+        private final RecordFailure reason;
+        private final long number;
+        private final long sourceLine;
 
         /**
          * Создаёт диагностическую ошибку одной записи.
@@ -196,25 +230,27 @@ public final class CsvColumnMapper {
          * @param reason причина, не null
          * @throws NullPointerException если datasetId или reason равны null
          * @throws IllegalArgumentException если datasetId blank либо номер/строка меньше 1
-         * @throws UnsupportedOperationException пока конструктор не реализован
          */
         public RecordMappingException(String datasetId, long number, long sourceLine, RecordFailure reason) {
-            throw new UnsupportedOperationException("Not implemented");
+            super(recordMessage(datasetId, number, sourceLine, reason));
+            this.reason = reason;
+            this.number = number;
+            this.sourceLine = sourceLine;
         }
 
-        /** @return причина; заглушка выбрасывает UnsupportedOperationException */
+        /** @return причина */
         public RecordFailure reason() {
-            throw new UnsupportedOperationException("Not implemented");
+            return reason;
         }
 
-        /** @return исходный номер записи; заглушка выбрасывает UnsupportedOperationException */
+        /** @return исходный номер записи */
         public long number() {
-            throw new UnsupportedOperationException("Not implemented");
+            return number;
         }
 
-        /** @return физическая строка начала записи; заглушка выбрасывает UnsupportedOperationException */
+        /** @return физическая строка начала записи */
         public long sourceLine() {
-            throw new UnsupportedOperationException("Not implemented");
+            return sourceLine;
         }
     }
 
@@ -242,11 +278,15 @@ public final class CsvColumnMapper {
      * @throws IllegalArgumentException если number() заголовка не равен 1
      *         либо sourceLine() меньше 1; метаданные проверяются до содержимого заголовка
      * @throws ConfigurationException если заголовок не соответствует конфигурации
-     * @throws UnsupportedOperationException пока метод не реализован;
-     *         заглушка не проверяет аргументы
      */
     public ResolvedMapping resolve(Options options, CsvRecordReader.Record header) {
-        throw new UnsupportedOperationException("Not implemented");
+        Objects.requireNonNull(options, "options");
+        Objects.requireNonNull(header, "header");
+        requireMetadata(header.number(), header.sourceLine());
+        if (header.number() != 1) {
+            throw new IllegalArgumentException("Header record number must be 1");
+        }
+        return new ResolvedMapping(options, header.fields(), resolveIndexes(options, header.fields()));
     }
 
     /**
@@ -278,11 +318,87 @@ public final class CsvColumnMapper {
      * @throws IllegalArgumentException если метаданные некорректны либо передан номер заголовка
      * @throws RecordMappingException если ширина записи не совпадает с заголовком
      *         либо техническая колонка непустая
-     * @throws UnsupportedOperationException пока метод не реализован;
-     *         заглушка не проверяет аргументы и не создаёт результат
      */
     public MappedRecord map(ResolvedMapping mapping, CsvRecordReader.Record record)
             throws RecordMappingException {
-        throw new UnsupportedOperationException("Not implemented");
+        Objects.requireNonNull(mapping, "mapping");
+        Objects.requireNonNull(record, "record");
+        requireMetadata(record.number(), record.sourceLine());
+        Options options = mapping.options();
+        if (record.number() <= options.headerRecords()) {
+            throw new IllegalArgumentException("Header record cannot be mapped as data");
+        }
+        List<String> fields = record.fields();
+        if (fields.size() != mapping.header().size()) {
+            throw new RecordMappingException(options.datasetId(), record.number(), record.sourceLine(),
+                    RecordFailure.FIELD_COUNT_MISMATCH);
+        }
+        if (options.trailingTechnicalColumn() && !fields.get(fields.size() - 1).isEmpty()) {
+            throw new RecordMappingException(options.datasetId(), record.number(), record.sourceLine(),
+                    RecordFailure.NON_EMPTY_TECHNICAL_COLUMN);
+        }
+        var values = new LinkedHashMap<String, String>();
+        for (int i = 0; i < options.columns().size(); i++) {
+            values.put(options.columns().get(i).targetField(), fields.get(mapping.sourceIndexes().get(i)));
+        }
+        return new MappedRecord(record.number(), record.sourceLine(), values);
+    }
+
+    /** Проверяет весь заголовок до поиска колонок, сохраняя приоритет ошибок. */
+    private static List<Integer> resolveIndexes(Options options, List<String> header) {
+        int namedColumns = header.size() - (options.trailingTechnicalColumn() ? 1 : 0);
+        if (namedColumns < 1) {
+            throw new ConfigurationException(options.datasetId(), ConfigurationFailure.INVALID_HEADER);
+        }
+        for (int i = 0; i < namedColumns; i++) {
+            if (header.get(i).isBlank()) {
+                throw new ConfigurationException(options.datasetId(), ConfigurationFailure.INVALID_HEADER);
+            }
+        }
+        if (options.trailingTechnicalColumn() && !header.get(header.size() - 1).isEmpty()) {
+            throw new ConfigurationException(options.datasetId(), ConfigurationFailure.INVALID_TECHNICAL_COLUMN);
+        }
+        var indexesByName = new HashMap<String, Integer>();
+        for (int i = 0; i < namedColumns; i++) {
+            if (indexesByName.put(header.get(i), i) != null) {
+                throw new ConfigurationException(options.datasetId(), ConfigurationFailure.DUPLICATE_HEADER);
+            }
+        }
+        var indexes = new ArrayList<Integer>(options.columns().size());
+        for (ColumnMapping column : options.columns()) {
+            Integer index = indexesByName.get(column.sourceColumn());
+            if (index == null) {
+                throw new ConfigurationException(options.datasetId(), ConfigurationFailure.MISSING_SOURCE_COLUMN);
+            }
+            indexes.add(index);
+        }
+        return indexes;
+    }
+
+    private static void requireNonBlank(String value, String name) {
+        if (value.isBlank()) {
+            throw new IllegalArgumentException(name + " must not be blank");
+        }
+    }
+
+    private static void requireMetadata(long number, long sourceLine) {
+        if (number < 1 || sourceLine < 1) {
+            throw new IllegalArgumentException("number and sourceLine must be positive");
+        }
+    }
+
+    private static String configurationMessage(String datasetId, ConfigurationFailure reason) {
+        Objects.requireNonNull(datasetId, "datasetId");
+        Objects.requireNonNull(reason, "reason");
+        requireNonBlank(datasetId, "datasetId");
+        return "Dataset " + datasetId + ": " + reason;
+    }
+
+    private static String recordMessage(String datasetId, long number, long sourceLine, RecordFailure reason) {
+        Objects.requireNonNull(datasetId, "datasetId");
+        Objects.requireNonNull(reason, "reason");
+        requireNonBlank(datasetId, "datasetId");
+        requireMetadata(number, sourceLine);
+        return "Dataset " + datasetId + ": record " + number + ", source line " + sourceLine + ": " + reason;
     }
 }

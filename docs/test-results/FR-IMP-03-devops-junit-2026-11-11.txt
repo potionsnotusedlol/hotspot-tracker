@@ -1,0 +1,41 @@
+FR-IMP-03 DevOps tests — direct JUnit execution
+
+Mapper test source: remote contract branch, commit 3916a2066f74330790eacbd804331aa44fce6c63.
+Author: tsar_161. Commit date: 2026-11-09.
+Reader test source: existing local file inherited from FR-IMP-01 at bd27ae6.
+Production code: current uncommitted FR-IMP-03 implementation and inherited reader.
+Java 27; compilation target --release 25; JUnit Platform Launcher 6.0.3.
+Dependencies: local Gradle cache. Execution: temporary directory, no repository test changes.
+Gradle remains unavailable due to 'Could not determine a usable wildcard IP for this machine'.
+
+
+Test run finished after 1777 ms
+[        34 containers found      ]
+[         0 containers skipped    ]
+[        34 containers started    ]
+[         0 containers aborted    ]
+[        34 containers successful ]
+[         0 containers failed     ]
+[       179 tests found           ]
+[         0 tests skipped         ]
+[       179 tests started         ]
+[         0 tests aborted         ]
+[       179 tests successful      ]
+[         0 tests failed          ]
+
+
+Repeated after updating both local FR-IMP-03 branches to 3916a20 and restoring implementation. Both test files compiled directly from server/src/test, without changes.
+
+Test run finished after 1634 ms
+[        34 containers found      ]
+[         0 containers skipped    ]
+[        34 containers started    ]
+[         0 containers aborted    ]
+[        34 containers successful ]
+[         0 containers failed     ]
+[       179 tests found           ]
+[         0 tests skipped         ]
+[       179 tests started         ]
+[         0 tests aborted         ]
+[       179 tests successful      ]
+[         0 tests failed          ]
