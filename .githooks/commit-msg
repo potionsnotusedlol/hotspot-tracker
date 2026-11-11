@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+# Checks the first line of the commit message: Conventional Commits, English only.
+# Enable once per clone: git config core.hooksPath .githooks
+set -euo pipefail
+
+subject=$(grep -vE '^#' "$1" | sed '/^[[:space:]]*$/d' | head -n 1 || true)
+
+# Merges, reverts and autosquash commits keep the messages git generates
+if grep -qE '^(Merge|Revert "|fixup! |squash! |amend! )' <<< "$subject"; then
+  exit 0
+fi
+
+types='feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert'
+if ! grep -qE "^($types)(\([a-z0-9._/-]+\))?!?: .+" <<< "$subject"; then
+  echo "Commit message must follow Conventional Commits, for example:"
+  echo "  feat(server): add access point search"
+  echo "  fix: handle empty CSV files"
+  echo "Allowed types: ${types//|/, }"
+  echo "Got: $subject"
+  exit 1
+fi
+
+# English only: any byte outside printable ASCII (Cyrillic included) is rejected
+if LC_ALL=C grep -q '[^ -~]' <<< "$subject"; then
+  echo "Commit message must be in English (ASCII only). Got: $subject"
+  exit 1
+fi
