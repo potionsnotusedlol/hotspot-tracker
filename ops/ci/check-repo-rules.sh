@@ -53,11 +53,11 @@ if [ ${#diff_range[@]} -gt 0 ]; then
     fail "Existing migrations must not be changed ($status): $file"
   done < <(git diff --name-status --no-renames --diff-filter=MD "${diff_range[@]}" -- "$migrations")
 
-  # Images are pinned to an exact version
+  # Images are pinned to an exact version. No \b here: BSD grep on macOS doesn't support it.
   while IFS= read -r line; do
     fail "Pin an exact image version instead of latest: ${line#+}"
   done < <(git diff -U0 "${diff_range[@]}" -- '*.yml' '*.yaml' '*.java' '*.kts' '*Dockerfile*' \
-    | grep -E '^\+[^+].*[a-z0-9._/-]+:latest\b' || true)
+    | grep -E '^\+[^+].*[a-z0-9._/-]+:latest([^A-Za-z0-9._-]|$)' || true)
 fi
 
 exit "$failed"
