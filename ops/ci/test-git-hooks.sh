@@ -70,7 +70,8 @@ stage ops/compose.yml 'image: postgres:18.1'; expect ok "pinned image tag" "chor
 stage Config.java 'String password = "correct-horse-battery";'; expect ok "ordinary test password" "test: add config"
 
 if [ "${SKIP_SECRET_CASES:-0}" != "1" ]; then
-  stage tgbot/token.txt "1234567890:$(printf 'A%.0s' $(seq 1 35))"; expect rejected "Telegram bot token" "chore: add token"
+  # Built at run time, so the repository itself contains no token-like string
+  stage tgbot/token.txt "1234567890:$(printf 'A%.0s' {1..35})"; expect rejected "Telegram bot token" "chore: add token"
   stage key.pem '-----BEGIN RSA PRIVATE KEY-----'; expect rejected "private key" "chore: add key"
 fi
 
