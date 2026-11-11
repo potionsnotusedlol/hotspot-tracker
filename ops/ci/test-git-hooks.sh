@@ -32,13 +32,15 @@ failures=0
 
 # Usage: expect ok|rejected "description" "commit message"
 expect() {
-  local output result
+  local output result line
   if output=$(git commit -qm "$3" 2>&1); then result=ok; else result=rejected; fi
   if [ "$result" = "$1" ]; then
     echo "PASS  $2"
   else
     echo "FAIL  $2: expected $1, got $result"
-    echo "$output" | sed 's/^/      /'
+    while IFS= read -r line; do
+      echo "      $line"
+    done <<< "$output"
     failures=$((failures + 1))
   fi
   git reset -q --hard "$base"
