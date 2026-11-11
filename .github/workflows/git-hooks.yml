@@ -49,5 +49,6 @@ jobs:
         run: |
           brew install gitleaks
           gitleaks version
-          export PATH="/bin:/usr/bin:$(brew --prefix)/bin:$PATH"
+          brew_bin="$(brew --prefix)/bin"
+          export PATH="/bin:/usr/bin:$brew_bin:$PATH"
           SKIP_SECRET_CASES=1 bash ops/ci/test-git-hooks.sh .
