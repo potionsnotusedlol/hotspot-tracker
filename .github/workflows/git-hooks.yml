@@ -1,0 +1,54 @@
+# Runs the git hook tests on every OS the team uses.
+name: Git hooks
+
+on:
+  pull_request:
+    paths:
+      - .githooks/**
+      - ops/ci/check-repo-rules.sh
+      - ops/ci/test-git-hooks.sh
+      - .github/workflows/git-hooks.yml
+  push:
+    branches: [master]
+    paths:
+      - .githooks/**
+      - ops/ci/check-repo-rules.sh
+      - ops/ci/test-git-hooks.sh
+      - .github/workflows/git-hooks.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, macos-15, windows-2025]
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Check out
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      # On macOS, use the system bash 3.2 and BSD tools that developers have, not the newer ones on the runner
+      - name: Test hooks
+        run: |
+          if [ "$RUNNER_OS" = "macOS" ]; then
+            export PATH="/bin:/usr/bin:$PATH"
+          fi
+          bash ops/ci/test-git-hooks.sh .
+
+      - name: Test hooks with gitleaks installed
+        if: ${{ runner.os == 'macOS' }}
+        run: |
+          brew install gitleaks
+          gitleaks version
+          brew_bin="$(brew --prefix)/bin"
+          export PATH="/bin:/usr/bin:$brew_bin:$PATH"
+          SKIP_SECRET_CASES=1 bash ops/ci/test-git-hooks.sh .
