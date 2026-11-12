@@ -1,13 +1,18 @@
-# Keeps GitHub Actions (pinned by commit SHA) and Gradle dependencies up to date.
+# Keeps pinned versions up to date. Each ecosystem gets one grouped pull request a week.
 version: 2
 updates:
+  # Workflow actions, pinned by commit SHA
   - package-ecosystem: github-actions
     directory: /
     schedule:
       interval: weekly
     commit-message:
       prefix: "ci"
+    groups:
+      github-actions:
+        patterns: ["*"]
 
+  # Server dependencies, Gradle plugins and the Gradle wrapper
   - package-ecosystem: gradle
     directory: /server
     schedule:
@@ -16,4 +21,15 @@ updates:
       prefix: "build"
     groups:
       server-dependencies:
+        patterns: ["*"]
+
+  # Images of the local environment (PostGIS, Redis, Prism)
+  - package-ecosystem: docker-compose
+    directory: /ops/compose
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: "build"
+    groups:
+      compose-images:
         patterns: ["*"]
