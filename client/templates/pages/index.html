@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wi-Fi Москвы</title>
+    <link rel="stylesheet" th:href="@{/css/variables.css}">
+    <link rel="stylesheet" th:href="@{/css/main.css}">
+    <link rel="stylesheet" th:href="@{/css/responsive.css}">
+</head>
+<body>
+    <div th:insert="~{layout/header.html}"></div>
+    <div th:insert="~{layout/navigation.html}"></div>
+    
+    <main class="main-content">
+        <section class="hero">
+            <div class="container">
+                <h1>Wi-Fi Москвы</h1>
+                <p class="subtitle">Информация о точках доступа, статистика использования и аналитика</p>
+                <div class="hero-buttons">
+                    <a href="/catalog" class="btn btn-primary">Перейти к каталогу</a>
+                    <a href="#" class="btn btn-secondary">Подробнее</a>
+                </div>
+            </div>
+        </section>
+        
+        <section class="features">
+            <div class="container">
+                <h2>Возможности системы</h2>
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <h3>🗺️ Каталог точек</h3>
+                        <p>Найти ближайшие точки доступа Wi-Fi по районам, типам транспорта и расстоянию</p>
+                    </div>
+                    <div class="feature-card">
+                        <h3>📊 Статистика</h3>
+                        <p>Анализ загруженности точек по часам, округам и районам</p>
+                    </div>
+                    <div class="feature-card">
+                        <h3>📥 Отчёты</h3>
+                        <p>Скачать подробные отчёты в Excel по интересующим вам данным</p>
+                    </div>
+                    <div class="feature-card">
+                        <h3>💬 Чат-бот</h3>
+                        <p>Интерактивное общение с системой на естественном языке</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <div th:insert="~{layout/footer.html}"></div>
+
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <script th:src="@{/js/app.js}"></script>
+</body>
+</html>
