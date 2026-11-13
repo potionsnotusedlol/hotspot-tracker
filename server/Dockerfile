@@ -29,6 +29,9 @@ COPY --from=build --chown=app:app /extracted/spring-boot-loader/ ./
 COPY --from=build --chown=app:app /extracted/snapshot-dependencies/ ./
 COPY --from=build --chown=app:app /extracted/application/ ./
 
+LABEL org.opencontainers.image.source="https://github.com/potionsnotusedlol/hotspot-tracker" \
+      org.opencontainers.image.description="Wi-Fi Moscow API server"
+
 USER 10001:10001
 EXPOSE 8080
 
