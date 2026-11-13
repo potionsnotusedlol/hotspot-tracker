@@ -81,6 +81,29 @@ tasks.withType<Test> {
 	useJUnitPlatform()
 }
 
+// Tests tagged "integration" (see AbstractIntegrationTest) need Docker for Testcontainers.
+// "test" stays fast and Docker-free; "integrationTest" runs the tagged ones; "check" and "build" run both.
+tasks.test {
+	useJUnitPlatform {
+		excludeTags("integration")
+	}
+}
+
+val integrationTest by tasks.registering(Test::class) {
+	description = "Runs the integration tests (Testcontainers, needs Docker)."
+	group = "verification"
+	testClassesDirs = sourceSets.test.get().output.classesDirs
+	classpath = sourceSets.test.get().runtimeClasspath
+	useJUnitPlatform {
+		includeTags("integration")
+	}
+	shouldRunAfter(tasks.test)
+}
+
+tasks.check {
+	dependsOn(integrationTest)
+}
+
 spotless {
 	java {
 		target("src/**/*.java")
