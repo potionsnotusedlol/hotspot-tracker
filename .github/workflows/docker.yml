@@ -1,4 +1,4 @@
-# Builds the server image, starts it with its dependencies and checks the healthcheck.
+# Builds the server image, starts it with its dependencies and scans the image with Trivy.
 name: Docker image
 
 on:
@@ -27,7 +27,7 @@ env:
 
 jobs:
   image:
-    name: Build
+    name: Build and scan
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     permissions:
@@ -46,6 +46,15 @@ jobs:
       - name: Show logs
         if: ${{ failure() }}
         run: docker compose --profile app logs --no-color
+
+      - name: Scan the image with Trivy
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          scan-type: image
+          image-ref: hotspot-server:local
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          exit-code: "1"
 
       - name: Stop the stack
         if: ${{ always() }}
