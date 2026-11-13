@@ -1,5 +1,6 @@
 # Local development infrastructure: PostgreSQL + PostGIS and Redis,
-# plus optional services: the API server (profile "app") and an API mock server (profile "mock").
+# plus optional services: the API server (profile "app"), monitoring (profile "monitoring")
+# and an API mock server (profile "mock").
 # Usage: see ops/README.md
 name: hotspot
 
@@ -69,6 +70,27 @@ services:
     ports:
       - "127.0.0.1:${APP_PORT:-8080}:8080"
 
+  # Monitoring: Prometheus collects metrics, Grafana shows them (dashboards are provisioned from ops/grafana).
+  prometheus:
+    profiles: [monitoring]
+    image: prom/prometheus:v3.16.0@sha256:e04987641b57704f408e31f6373ba4138ecf27cb4a165d24aabb6c38fddd0f06
+    restart: unless-stopped
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention.time=7d
+    ports:
+      - "127.0.0.1:${PROMETHEUS_PORT:-9090}:9090"
+    volumes:
+      - ../prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:9090/-/healthy"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+
   # Serves example responses from docs/openapi.yaml, so clients can be built before the backend.
   mock:
     profiles: [mock]
@@ -90,3 +112,4 @@ services:
 volumes:
   postgres-data:
   redis-data:
+  prometheus-data:
