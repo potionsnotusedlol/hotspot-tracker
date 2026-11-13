@@ -6,6 +6,10 @@
 FROM eclipse-temurin:25.0.5_8-jdk-alpine-3.24@sha256:c7c3d0bdf7f2bbc5a05a6712ed334d198360105634ea9adf76fca94f381b1e3f AS build
 WORKDIR /workspace
 
+# Extra Gradle/JVM options for the build, e.g. a proxy or -Djava.net.preferIPv4Stack=true
+# on a network without IPv6 (pass with --build-arg GRADLE_OPTS=...)
+ARG GRADLE_OPTS=""
+
 # The wrapper and the build scripts change rarely, so this layer is cached between builds
 COPY gradlew settings.gradle.kts build.gradle.kts ./
 COPY gradle gradle
