@@ -1,0 +1,53 @@
+# Builds the server image, starts it with its dependencies and checks the healthcheck.
+name: Docker image
+
+on:
+  pull_request:
+    paths:
+      - server/**
+      - ops/compose/**
+      - .github/workflows/docker.yml
+  push:
+    branches: [master]
+    paths:
+      - server/**
+      - ops/compose/**
+      - .github/workflows/docker.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+env:
+  COMPOSE_FILE: ops/compose/docker-compose.yml
+
+jobs:
+  image:
+    name: Build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    steps:
+      - name: Check out
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      # Builds server/Dockerfile and waits until the application healthcheck reports UP,
+      # so a broken image or a wrong environment fails the pull request
+      - name: Start the stack
+        run: |
+          cp ops/compose/.env.example ops/compose/.env
+          docker compose --profile app up -d --build --wait --wait-timeout 300 app
+
+      - name: Show logs
+        if: ${{ failure() }}
+        run: docker compose --profile app logs --no-color
+
+      - name: Stop the stack
+        if: ${{ always() }}
+        run: docker compose --profile app down --volumes
+
