@@ -1,5 +1,5 @@
 # Local development infrastructure: PostgreSQL + PostGIS and Redis,
-# plus an optional API mock server (profile "mock").
+# plus optional services: the API server (profile "app") and an API mock server (profile "mock").
 # Usage: see ops/README.md
 name: hotspot
 
@@ -45,6 +45,29 @@ services:
       interval: 5s
       timeout: 3s
       retries: 10
+
+  # The API server, built from server/Dockerfile. It connects as the application role
+  # (no DDL) and runs Flyway migrations as the migration role.
+  app:
+    profiles: [app]
+    build:
+      context: ../../server
+    image: hotspot-server:local
+    restart: unless-stopped
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-hotspot}
+      SPRING_DATASOURCE_USERNAME: ${DB_APP_USER:-hotspot_app}
+      SPRING_DATASOURCE_PASSWORD: ${DB_APP_PASSWORD:?Set DB_APP_PASSWORD in ops/compose/.env}
+      SPRING_FLYWAY_USER: ${DB_MIGRATION_USER:-hotspot_migrator}
+      SPRING_FLYWAY_PASSWORD: ${DB_MIGRATION_PASSWORD:?Set DB_MIGRATION_PASSWORD in ops/compose/.env}
+      SPRING_DATA_REDIS_HOST: redis
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:${APP_PORT:-8080}:8080"
 
   # Serves example responses from docs/openapi.yaml, so clients can be built before the backend.
   mock:
