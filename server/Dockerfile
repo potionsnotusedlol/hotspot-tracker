@@ -32,4 +32,8 @@ COPY --from=build --chown=app:app /extracted/application/ ./
 USER 10001:10001
 EXPOSE 8080
 
+# Healthy only when the actuator reports UP (the database and Redis checks are included)
+HEALTHCHECK --interval=15s --timeout=3s --start-period=60s --retries=5 \
+    CMD wget -q --spider http://127.0.0.1:8080/actuator/health || exit 1
+
 ENTRYPOINT ["java", "-jar", "/app/app.jar"]
