@@ -104,6 +104,25 @@ curl http://localhost:8080/actuator/health
 - If the build cannot download Gradle on a network without IPv6, pass `--build-arg GRADLE_OPTS=-Djava.net.preferIPv4Stack=true` to `docker build` (or set it under `build.args` in the compose file for a local run).
 - On `master` the image is published to GitHub Container Registry as `ghcr.io/potionsnotusedlol/hotspot-tracker/server`, tagged `sha-<commit>` and `master`.
 
+### Monitoring
+
+The `monitoring` profile starts Prometheus, Grafana and the PostgreSQL and Redis exporters. It needs the same `.env` file.
+
+```sh
+docker compose -f ops/compose/docker-compose.yml --profile monitoring up -d
+```
+
+| Service | Address | Notes |
+|---|---|---|
+| Grafana | `http://localhost:3000` | login `GRAFANA_ADMIN_USER` / `GRAFANA_ADMIN_PASSWORD` from `.env` (default `admin` / `admin`) |
+| Prometheus | `http://localhost:9090` | `Status > Targets` shows what is scraped |
+
+- The dashboard **Hotspot / Infrastructure overview** is provisioned from `ops/grafana/dashboards`. It shows the targets, the JVM and HikariCP of the server, PostgreSQL and Redis. Add or change dashboards as JSON files there, not in the Grafana interface: provisioned dashboards are read-only.
+- Prometheus is configured in `ops/prometheus/prometheus.yml` and keeps the data for 7 days.
+- The server is scraped at `app:8080/actuator/prometheus` when it runs with the `app` profile. For now the target `app` is down and the JVM and HikariCP panels are empty: the server has no Prometheus registry yet, and Spring Security answers 401 on the endpoint. The server needs `micrometer-registry-prometheus`, the `prometheus` endpoint exposed, and access for the scraper without a user login (for example a management port that is not published). The rest of the dashboard works without it.
+- The exporters connect to PostgreSQL as the application role.
+- Ports are bound to `127.0.0.1`; change `GRAFANA_PORT` and `PROMETHEUS_PORT` in `.env` if they are taken.
+
 ### Stop and reset
 
 ```sh
