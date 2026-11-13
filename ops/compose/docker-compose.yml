@@ -91,6 +91,29 @@ services:
       retries: 10
       start_period: 10s
 
+  # The exporters connect with the application role: it can read the statistics views used for the dashboards.
+  postgres-exporter:
+    profiles: [monitoring]
+    image: quay.io/prometheuscommunity/postgres-exporter:v0.20.1@sha256:ac5ec343104fae0e2d84a27bb8d69b38430a11910c5382cad85d478d2bab713e
+    restart: unless-stopped
+    environment:
+      DATA_SOURCE_URI: postgres:5432/${POSTGRES_DB:-hotspot}?sslmode=disable
+      DATA_SOURCE_USER: ${DB_APP_USER:-hotspot_app}
+      DATA_SOURCE_PASS: ${DB_APP_PASSWORD:?Set DB_APP_PASSWORD in ops/compose/.env}
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  redis-exporter:
+    profiles: [monitoring]
+    image: oliver006/redis_exporter:v1.97.0@sha256:f5f903fbe77571d455ede0453b084d6840bc62fc105efac001034421cab83b99
+    restart: unless-stopped
+    environment:
+      REDIS_ADDR: redis://redis:6379
+    depends_on:
+      redis:
+        condition: service_healthy
+
   # Serves example responses from docs/openapi.yaml, so clients can be built before the backend.
   mock:
     profiles: [mock]
