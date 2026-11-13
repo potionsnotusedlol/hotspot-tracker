@@ -88,6 +88,22 @@ docker compose -f ops/compose/docker-compose.yml --profile mock rm -sf mock
 - Answers are static examples: there is no real data, login or permission check. Use the backend for anything that depends on them.
 - Contract problems found while serving a response are printed in the log: `docker compose -f ops/compose/docker-compose.yml --profile mock logs mock`.
 
+### API server
+
+The `app` profile builds the server image from `server/Dockerfile` and starts it next to PostgreSQL and Redis. The image uses Eclipse Temurin 25 (JRE only, layered jar), runs as a non-root user and has a healthcheck on `/actuator/health`. It needs the same `.env` file.
+
+```sh
+docker compose -f ops/compose/docker-compose.yml --profile app up -d --build app
+docker compose -f ops/compose/docker-compose.yml --profile app ps    # app must be "healthy"
+curl http://localhost:8080/actuator/health
+```
+
+- The application connects as `DB_APP_USER` (no DDL); Flyway migrations run as `DB_MIGRATION_USER`.
+- After code changes run `up -d --build app` again. The first build downloads Gradle and the dependencies and takes a few minutes; later builds reuse the Docker cache.
+- The host port is `APP_PORT` (default 8080).
+- If the build cannot download Gradle on a network without IPv6, pass `--build-arg GRADLE_OPTS=-Djava.net.preferIPv4Stack=true` to `docker build` (or set it under `build.args` in the compose file for a local run).
+- On `master` the image is published to GitHub Container Registry as `ghcr.io/potionsnotusedlol/hotspot-tracker/server`, tagged `sha-<commit>` and `master`.
+
 ### Stop and reset
 
 ```sh
