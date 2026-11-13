@@ -18,16 +18,18 @@ RUN --mount=type=cache,target=/root/.gradle \
     && java -Djarmode=tools -jar "$jar" extract --layers --destination /extracted \
     && mv "/extracted/application/$(basename "$jar")" /extracted/application/app.jar
 
-# Runtime stage: JRE only
+# Runtime stage: JRE only, non-root user
 FROM eclipse-temurin:25.0.5_8-jre-alpine-3.24@sha256:e1898fd6a11fc965a994d8ace186fd3585aeb636cf8f05f47a723fcfee0b0918
+RUN addgroup -S -g 10001 app && adduser -S -D -H -u 10001 -G app -h /app app
 WORKDIR /app
 
 # Least frequently changed layers first, so a code change rebuilds only the last one
-COPY --from=build /extracted/dependencies/ ./
-COPY --from=build /extracted/spring-boot-loader/ ./
-COPY --from=build /extracted/snapshot-dependencies/ ./
-COPY --from=build /extracted/application/ ./
+COPY --from=build --chown=app:app /extracted/dependencies/ ./
+COPY --from=build --chown=app:app /extracted/spring-boot-loader/ ./
+COPY --from=build --chown=app:app /extracted/snapshot-dependencies/ ./
+COPY --from=build --chown=app:app /extracted/application/ ./
 
+USER 10001:10001
 EXPOSE 8080
 
 ENTRYPOINT ["java", "-jar", "/app/app.jar"]
