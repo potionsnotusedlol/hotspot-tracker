@@ -146,12 +146,23 @@ jacoco {
 	toolVersion = "0.8.16"
 }
 
+// Coverage comes from both test tasks; only the files that exist are read, so "test" alone still works
+val jacocoExecutionData = fileTree(layout.buildDirectory.dir("jacoco")) {
+	include("test.exec", "integrationTest.exec")
+}
+
 tasks.test {
+	finalizedBy(tasks.jacocoTestReport)
+}
+
+integrationTest {
 	finalizedBy(tasks.jacocoTestReport)
 }
 
 tasks.jacocoTestReport {
 	dependsOn(tasks.test)
+	mustRunAfter(integrationTest)
+	executionData.setFrom(jacocoExecutionData)
 	reports {
 		xml.required = true
 		html.required = true
@@ -160,7 +171,8 @@ tasks.jacocoTestReport {
 
 // NFR-MNT-01: 70% of lines for the service layer, 85% for authorization and the load model
 tasks.jacocoTestCoverageVerification {
-	dependsOn(tasks.test)
+	dependsOn(tasks.test, integrationTest)
+	executionData.setFrom(jacocoExecutionData)
 	violationRules {
 		rule {
 			element = "CLASS"
