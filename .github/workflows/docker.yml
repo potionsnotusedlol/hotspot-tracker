@@ -1,4 +1,5 @@
-# Builds the server image, starts it with its dependencies and scans the image with Trivy.
+# Builds the server image, starts it with its dependencies, scans it with Trivy
+# and, on master, publishes it to GitHub Container Registry.
 name: Docker image
 
 on:
@@ -27,11 +28,13 @@ env:
 
 jobs:
   image:
-    name: Build and scan
+    name: Build, scan and publish
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     permissions:
       contents: read
+      # Needed only to push the image from master; pull requests from forks get a read-only token anyway
+      packages: write
     steps:
       - name: Check out
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -60,3 +63,15 @@ jobs:
         if: ${{ always() }}
         run: docker compose --profile app down --volumes
 
+      - name: Publish to GHCR
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
+        env:
+          REGISTRY_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Registry paths must be lowercase
+          image="ghcr.io/${GITHUB_REPOSITORY,,}/server"
+          echo "$REGISTRY_TOKEN" | docker login ghcr.io --username "$GITHUB_ACTOR" --password-stdin
+          for tag in "sha-${GITHUB_SHA::7}" master; do
+            docker tag hotspot-server:local "$image:$tag"
+            docker push "$image:$tag"
+          done
