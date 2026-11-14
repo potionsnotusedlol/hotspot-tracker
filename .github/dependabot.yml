@@ -23,7 +23,7 @@ updates:
       server-dependencies:
         patterns: ["*"]
 
-  # Images of the local environment (PostGIS, Redis, Prism)
+  # Images of the local environment (databases, monitoring, mock server)
   - package-ecosystem: docker-compose
     directory: /ops/compose
     schedule:
@@ -32,4 +32,15 @@ updates:
       prefix: "build"
     groups:
       compose-images:
+        patterns: ["*"]
+
+  # Base images of the server Dockerfile (JDK for the build, JRE for the runtime), pinned by version and digest
+  - package-ecosystem: docker
+    directory: /server
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: "build"
+    groups:
+      server-images:
         patterns: ["*"]
