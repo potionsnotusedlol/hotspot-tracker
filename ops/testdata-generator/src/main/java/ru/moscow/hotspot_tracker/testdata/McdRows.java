@@ -7,6 +7,9 @@ import java.util.List;
 final class McdRows implements RowSource {
     private static final long ID_BASE = 6_000_000_000L;
 
+    /** The geodata_center column is always empty in the real file. */
+    private static final String NO_CENTRE = "";
+
     private final Values values;
 
     McdRows(Values values) {
@@ -36,8 +39,7 @@ final class McdRows implements RowSource {
         row.add("\u0434\u0435\u0439\u0441\u0442\u0432\u0443\u0435\u0442");
         row.add(String.valueOf(ID_BASE + index));
         row.add(Values.geo(lat, lon));
-        // Always empty in the real file
-        row.add("");
+        row.add(NO_CENTRE);
         return row;
     }
 }

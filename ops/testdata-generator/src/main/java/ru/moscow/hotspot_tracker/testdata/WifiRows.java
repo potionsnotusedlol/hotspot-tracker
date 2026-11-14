@@ -59,7 +59,7 @@ final class WifiRows implements RowSource {
         return row;
     }
 
-    // Shares of the real file: 86% one point, 12% two, the rest up to nine
+    /** Number of access points with the shares of the real file: 86% one, 12% two, the rest from three to nine. */
     private String accessPoints() {
         double roll = values.uniform();
         if (roll < 0.86) {

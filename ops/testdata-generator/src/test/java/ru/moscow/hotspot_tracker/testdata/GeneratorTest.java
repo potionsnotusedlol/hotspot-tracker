@@ -158,6 +158,10 @@ class GeneratorTest {
         assertTrue(text.endsWith("\t\r\n"));
     }
 
+    /**
+     * The file decodes strictly as Windows-1251, and not as UTF-8. It must contain "operating" in Russian:
+     * every Wi-Fi row has it.
+     */
     @Test
     void windows1251FileIsWrittenInWindows1251(@TempDir Path dir) throws IOException {
         Path file = dir.resolve("wifi.csv");
@@ -170,7 +174,6 @@ class GeneratorTest {
                 .onMalformedInput(CodingErrorAction.REPORT)
                 .decode(ByteBuffer.wrap(bytes))
                 .toString();
-        // "operating": every Wi-Fi row has it
         assertTrue(text.contains("\u0434\u0435\u0439\u0441\u0442\u0432\u0443\u0435\u0442"));
         assertThrows(
                 CharacterCodingException.class,

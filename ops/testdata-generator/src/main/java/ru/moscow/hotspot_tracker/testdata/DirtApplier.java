@@ -89,7 +89,7 @@ final class DirtApplier {
         }
     }
 
-    // The geo columns repeat the coordinate columns, so a broken point is broken everywhere
+    /** Sets the coordinates and repeats them in the geo columns, so a broken point is broken everywhere. */
     private void setCoordinates(List<String> fields, String lat, String lon) {
         fields.set(latitude, lat);
         fields.set(longitude, lon);

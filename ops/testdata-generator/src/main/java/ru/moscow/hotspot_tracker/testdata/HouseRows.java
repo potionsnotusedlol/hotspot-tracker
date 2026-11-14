@@ -85,7 +85,7 @@ final class HouseRows implements RowSource {
         return otherRegions.get(otherRegions.size() - 1);
     }
 
-    // The real file keeps floating point noise: 55.76534100000001
+    /** A coordinate as in houses.csv, which keeps floating point noise in some values: {@code 55.76534100000001}. */
     private String coordinate(double value) {
         double rounded = Math.round(value * 1e6) / 1e6;
         return Double.toString(values.chance(0.35) ? Math.nextUp(rounded) : rounded);

@@ -5,6 +5,18 @@ import java.util.List;
 
 /** A strict CSV parser for the tests: RFC 4180 quotes, LF or CRLF, no recovery. */
 final class TestCsv {
+    /** Where the parser is inside the current field. */
+    private enum State {
+        /** Nothing of the field is read yet. */
+        FIELD_START,
+        /** Inside a field without quotes. */
+        UNQUOTED,
+        /** Inside quotes. */
+        QUOTED,
+        /** Right after a closing quote, or the first quote of a doubled one. */
+        AFTER_QUOTE
+    }
+
     private TestCsv() {}
 
     /**
@@ -17,23 +29,22 @@ final class TestCsv {
         List<List<String>> records = new ArrayList<>();
         List<String> fields = new ArrayList<>();
         StringBuilder field = new StringBuilder();
-        // 0: start of a field, 1: unquoted field, 2: inside quotes, 3: after a closing quote
-        int state = 0;
+        State state = State.FIELD_START;
         for (int i = 0; i < text.length(); i++) {
             char c = text.charAt(i);
-            if (state == 2) {
+            if (state == State.QUOTED) {
                 if (c == '"') {
-                    state = 3;
+                    state = State.AFTER_QUOTE;
                 } else {
                     field.append(c);
                 }
-            } else if (state == 3 && c == '"') {
+            } else if (state == State.AFTER_QUOTE && c == '"') {
                 field.append('"');
-                state = 2;
+                state = State.QUOTED;
             } else if (c == delimiter) {
                 fields.add(field.toString());
                 field.setLength(0);
-                state = 0;
+                state = State.FIELD_START;
             } else if (c == '\r' && i + 1 < text.length() && text.charAt(i + 1) == '\n') {
                 continue;
             } else if (c == '\n') {
@@ -41,21 +52,21 @@ final class TestCsv {
                 field.setLength(0);
                 records.add(fields);
                 fields = new ArrayList<>();
-                state = 0;
+                state = State.FIELD_START;
             } else if (c == '"') {
-                if (state != 0) {
+                if (state != State.FIELD_START) {
                     throw new IllegalArgumentException("Quote inside an unquoted field at " + i);
                 }
-                state = 2;
+                state = State.QUOTED;
             } else {
-                if (state == 3) {
+                if (state == State.AFTER_QUOTE) {
                     throw new IllegalArgumentException("Character after a closing quote at " + i);
                 }
                 field.append(c);
-                state = 1;
+                state = State.UNQUOTED;
             }
         }
-        if (state == 2) {
+        if (state == State.QUOTED) {
             throw new IllegalArgumentException("Unclosed quote");
         }
         if (!fields.isEmpty() || field.length() > 0) {

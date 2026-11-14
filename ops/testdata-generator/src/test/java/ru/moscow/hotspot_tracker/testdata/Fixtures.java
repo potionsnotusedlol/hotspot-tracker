@@ -8,19 +8,28 @@ import java.util.List;
 
 /** Helpers to generate files in memory. */
 final class Fixtures {
-    // Bounding box of Moscow with the MCD stations around it
+    /** South border of the area of Moscow with the MCD stations around it. */
     static final double MIN_LAT = 55.0;
+
+    /** North border of the area of Moscow with the MCD stations around it. */
     static final double MAX_LAT = 56.2;
+
+    /** West border of the area of Moscow with the MCD stations around it. */
     static final double MIN_LON = 36.5;
+
+    /** East border of the area of Moscow with the MCD stations around it. */
     static final double MAX_LON = 38.5;
 
     private Fixtures() {}
 
+    /**
+     * Options of a run. Adds {@code --output unused.csv} unless the extra arguments have an output:
+     * the option is required, but the in-memory generation does not write the file.
+     */
     static Options options(Dataset dataset, int rows, String... extra) {
         List<String> args = new ArrayList<>(List.of("--dataset", dataset.option(), "--rows", String.valueOf(rows)));
         args.addAll(List.of(extra));
         if (!args.contains("--output")) {
-            // Not written: the in-memory generation ignores it
             args.addAll(List.of("--output", "unused.csv"));
         }
         return Options.parse(args);

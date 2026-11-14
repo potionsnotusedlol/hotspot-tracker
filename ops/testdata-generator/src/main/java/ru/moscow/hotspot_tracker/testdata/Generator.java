@@ -18,12 +18,17 @@ final class Generator {
 
     private Generator() {}
 
+    /**
+     * Writes the file of the options, creating its directories.
+     *
+     * @throws IOException if the file cannot be written, or a value cannot be encoded in the charset:
+     *     such a character fails the run instead of being replaced with {@code ?}
+     */
     static Summary generate(Options options) throws IOException {
         Path parent = options.output().toAbsolutePath().getParent();
         if (parent != null) {
             Files.createDirectories(parent);
         }
-        // A character the charset cannot encode is an error, not a silent "?"
         CharsetEncoder encoder = options.charset()
                 .newEncoder()
                 .onMalformedInput(CodingErrorAction.REPORT)

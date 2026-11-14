@@ -45,9 +45,9 @@ class MainTest {
         assertTrue(text(err).startsWith("Error: --rows is required"), text(err));
     }
 
+    /** A directory as the output cannot be opened as a file. */
     @Test
     void unwritableOutputIsReported(@TempDir Path dir) {
-        // A directory cannot be opened as a file
         assertEquals(1, run("--dataset", "mcd", "--rows", "1", "--output", dir.toString()));
         assertTrue(text(err).startsWith("Error: cannot write"), text(err));
     }
