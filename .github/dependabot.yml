@@ -1,4 +1,5 @@
 # Keeps pinned versions up to date. Each ecosystem gets one grouped pull request a week.
+# Minor versions are ignored: only patch and major updates are proposed.
 version: 2
 updates:
   # Workflow actions, pinned by commit SHA
@@ -8,6 +9,9 @@ updates:
       interval: weekly
     commit-message:
       prefix: "ci"
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-minor"]
     groups:
       github-actions:
         patterns: ["*"]
@@ -19,6 +23,9 @@ updates:
       interval: weekly
     commit-message:
       prefix: "build"
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-minor"]
     groups:
       server-dependencies:
         patterns: ["*"]
@@ -30,6 +37,9 @@ updates:
       interval: weekly
     commit-message:
       prefix: "build"
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-minor"]
     groups:
       compose-images:
         patterns: ["*"]
@@ -41,6 +51,9 @@ updates:
       interval: weekly
     commit-message:
       prefix: "build"
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-minor"]
     groups:
       server-images:
         patterns: ["*"]
