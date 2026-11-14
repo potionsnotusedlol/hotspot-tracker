@@ -2,6 +2,8 @@
 
 Infrastructure for local development, CI and testing.
 
+Synthetic CSV files for import and load tests: see [testdata-generator](testdata-generator/README.md).
+
 ## Local environment: PostgreSQL + PostGIS and Redis
 
 | Service | Image | Host address |
