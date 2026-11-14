@@ -126,9 +126,11 @@ docker compose -f ops/compose/docker-compose.yml --profile monitoring up -d
 ### Stop and reset
 
 ```sh
-docker compose -f ops/compose/docker-compose.yml down      # stop, keep data
-docker compose -f ops/compose/docker-compose.yml down -v   # stop and delete all data
+docker compose -f ops/compose/docker-compose.yml --profile '*' down      # stop, keep data
+docker compose -f ops/compose/docker-compose.yml --profile '*' down -v   # stop and delete all data
 ```
+
+`down` only touches the services of the profiles it is given. A plain `down` stops PostgreSQL and Redis but leaves the services started with a profile (`app`, `monitoring`, `mock`) running, and the network stays in use. `--profile '*'` selects all of them. To stop only one group, name its profile: `--profile monitoring down`.
 
 The init script runs only on the first start with an empty data volume. After changing it, or the roles and passwords in `.env`, recreate the database with `down -v`.
 
