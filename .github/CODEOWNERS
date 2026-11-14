@@ -17,6 +17,8 @@ tgbot/ @Riri4ek053
 ops/ @Tsaryapkin00
 .github/ @Tsaryapkin00
 *gradle* @Tsaryapkin00
+server/Dockerfile @Tsaryapkin00
+server/.dockerignore @Tsaryapkin00
 
 # documentation
 

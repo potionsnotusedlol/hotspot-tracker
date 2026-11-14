@@ -1,0 +1,77 @@
+# Builds the server image, starts it with its dependencies, scans it with Trivy
+# and, on master, publishes it to GitHub Container Registry.
+name: Docker image
+
+on:
+  pull_request:
+    paths:
+      - server/**
+      - ops/compose/**
+      - .github/workflows/docker.yml
+  push:
+    branches: [master]
+    paths:
+      - server/**
+      - ops/compose/**
+      - .github/workflows/docker.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+env:
+  COMPOSE_FILE: ops/compose/docker-compose.yml
+
+jobs:
+  image:
+    name: Build, scan and publish
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      # Needed only to push the image from master; pull requests from forks get a read-only token anyway
+      packages: write
+    steps:
+      - name: Check out
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      # Builds server/Dockerfile and waits until the application healthcheck reports UP,
+      # so a broken image or a wrong environment fails the pull request
+      - name: Start the stack
+        run: |
+          cp ops/compose/.env.example ops/compose/.env
+          docker compose --profile app up -d --build --wait --wait-timeout 300 app
+
+      - name: Show logs
+        if: ${{ failure() }}
+        run: docker compose --profile app logs --no-color
+
+      - name: Scan the image with Trivy
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          scan-type: image
+          image-ref: hotspot-server:local
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          exit-code: "1"
+
+      - name: Stop the stack
+        if: ${{ always() }}
+        run: docker compose --profile app down --volumes
+
+      - name: Publish to GHCR
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
+        env:
+          REGISTRY_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Registry paths must be lowercase
+          image="ghcr.io/${GITHUB_REPOSITORY,,}/server"
+          echo "$REGISTRY_TOKEN" | docker login ghcr.io --username "$GITHUB_ACTOR" --password-stdin
+          for tag in "sha-${GITHUB_SHA::7}" master; do
+            docker tag hotspot-server:local "$image:$tag"
+            docker push "$image:$tag"
+          done
