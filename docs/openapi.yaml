@@ -19,6 +19,10 @@ tags:
   - name: access-points
     description: Wi-Fi access points.
 
+security:
+  - bearerAuth: []
+
+
 paths:
   /api/v1/access-points:
     get:
@@ -192,6 +196,10 @@ paths:
           $ref: '#/components/responses/TooManyRequests'
         '500':
           $ref: '#/components/responses/InternalError'
+
+  /api/v1/access-points/{id}:
+    get:
+
 
 components:
   securitySchemes:
