@@ -51,7 +51,7 @@ paths:
         - {}
         - bearerAuth: []
       x-access:
-        mainRole: GUEST
+        minRole: GUEST
         restrictions:
           GUEST:
             maxPage: 4
@@ -63,12 +63,16 @@ paths:
         - name: page
           in: query
           description: Page number, 0-based.
-          schema: { type: string, maxLength: 512 }
+          schema: {type: integer, minimum: 0, default: 0}
         - name: size
           in: query
-          x-min-role: USER
+          description: Page size. 20 and less for GUEST.
+          schema: {type: integer, minimum: 1, maximum: 100, default: 20}
+        - name: cursor
+          in: query
+          x-min-user: USER
           description: Next page cursor from `nextCursor` field. Cannot be with `page`. For USER and greater.
-          schema: { type: string, maxLength: 512 }
+          schema: {type: string, maxLength: 512}
         - name: sort
           in: query
           style: form
@@ -137,7 +141,6 @@ paths:
                   value:
                     content:
                       - id: 1001
-                        externalId: "WIFI-0001"
                         name: "Point by the park entrance"
                         address: "ул. Молодой залупы, 1"
                         borough: "ЦАО"
@@ -145,10 +148,9 @@ paths:
                         location: { lat: 55.7648, lon: 37.6055 }
                         status: ACTIVE
                       - id: 1002
-                        externalId: "WIFI-0002"
                         name: "Point in the suare"
                         address: "пл. Говновротская, 3"
-                        dorough: "ЦАО"
+                        borough: "ЦАО"
                         district: "Тверской"
                         location: { lat: 55.7612, lon: 37.6098 }
                         status: ACTIVE
@@ -162,10 +164,9 @@ paths:
                   value:
                     content:
                       - id: 1001
-                        externalId: "WIFI-0001"
                         name: "Point by the park entrance"
                         address: "ул. Молодой залупы, 1"
-                        dorough: "ЦАО"
+                        borough: "ЦАО"
                         district: "Тверской"
                         location: { lat: 55.7648, lon: 37.6055 }
                         status: ACTIVE
@@ -173,10 +174,9 @@ paths:
                         peakLoad: 42.5
                         loadLevel: MEDIUM
                       - id: 1002
-                        externalId: "WIFI-0002"
                         name: "Point on the square"
                         address: "пл. Говноротская, 3"
-                        dorough: "ЦАО"
+                        borough: "ЦАО"
                         district: "Тверской"
                         location: { lat: 55.7612, lon: 37.6098 }
                         status: ACTIVE
@@ -200,7 +200,7 @@ paths:
   /api/v1/access-points/{id}:
     get:
       tags: [access-points]
-      operationId: searchAccessPointsByID
+      operationId: getAccessPoint
       summary: Get info for an access point with certain ID.
       description: |
         **Who can call:** anyone. Token is required for load level of a point (inherits rules from AccessPoint schema).
@@ -208,8 +208,10 @@ paths:
         Give information of a specific Wi-Fi access point with no restrictions.
       security:
         - {}
+        - bearerAuth: []
       parameters:
         - name: id
+          required: true
           in: path
           description: Access point ID from internal database.
           schema: {type: integer, format: int64}
@@ -224,7 +226,6 @@ paths:
                   summary: Response for guest, without NearestStop, LoadLevel, PeakLoad.
                   value:
                     id: 1001
-                    externalId: "WIFI-0001"
                     name: "Point by the park entrance"
                     address: "ул. Молодой залупы, 1"
                     borough: "ЦАО"
@@ -235,7 +236,6 @@ paths:
                   summary: Response to authorized user, no fields are abscent.
                   value:
                     id: 1001
-                    externalId: "WIFI-0001"
                     name: "Point by the park entrance"
                     address: "ул. Молодой залупы, 1"
                     borough: "ЦАО"
@@ -249,6 +249,8 @@ paths:
           $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
         '429':
           $ref: '#/components/responses/TooManyRequests'
         '500':
@@ -299,13 +301,12 @@ components:
     
     AccessPoint:
       type: object
-      required: [id, externalId, name, address, borough, district, location, status]
+      required: [id, name, address, borough, district, location, status]
       properties: 
         id: { type: integer, format: int64 }
-        externalId: { type: string, description: ID in source data. } # might be unnessesary, check later for any logical sense
         name: { type: string }
         address: { type: string }
-        dorough: { type: string }
+        borough: { type: string }
         district: { type: string }
         location: { $ref: '#/components/schemas/GeoPoint' }
         status: { $ref: '#/components/schemas/AccessPointStatus' }
@@ -382,9 +383,9 @@ components:
               summary: Example error response for /api/v1/access-points/{id} (id not found)
               value:
                 type: /problems/invalid-id
-                title: Id is invalid or access point not found.
+                title: Id is invalid.
                 status: 400
-                detail: No record found in database for ID passed by user
+                detail: Id is formatted wrongly.
                 instance: /api/v1/access-points/{id}
                 errors:
                   - {field: id, message: "access point not found"}
@@ -403,7 +404,7 @@ components:
           schema: { $ref: '#/components/schemas/Problem' }
           examples:
             loginRequired:
-              summary: Guest used inaccessible filter
+              summary: Guest used filter that requires authentication
               value:
                 type: /problems/login-required
                 title: Login required
@@ -418,6 +419,30 @@ components:
                 status: 401
                 detail: Token is expired. Update token.
                 instance: /api/v1/access-points
+    
+    Forbidden:
+      description: User trying to access restricted data (logged in, role mismatch)
+      content:
+        application/problem+json:
+          schema: {$ref: '#/components/schemas/Problem'}
+          example:
+            type: /problems/forbidden
+            title: Forbidden field access
+            status: 403
+            detail: Only ADMIN-level users can call POST /imports
+            instance: /api/v1/admin/imports
+
+    NotFound:
+      description: No content found on the server for given filters (or it's carefully hidden from unauthorized users)
+      content:
+        application/problem+json:
+          schema: {$ref: '#/components/schemas/Problem'}
+          example:
+            type: /problems/not-found
+            title: Not found
+            status: 404
+            detail: No such resource on the server
+            instance: /api/v1/reports
 
     TooManyRequests:
       description: Request count limit is exceeded.
