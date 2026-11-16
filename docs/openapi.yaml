@@ -3,11 +3,11 @@ info:
   title: "Moscow city Wi-Fi API"
   version: 0.1.0
   description: |
-    Draft contract for endpoint calalogue.
+    Draft contract for endpoint catalog.
 
-    Roles: GUEST (no authorized), USER, ANALYST, ADMIN. Each greater role inherits rules from all lower ones.
+    Roles: GUEST (not authorized), USER, ANALYST, ADMIN. Each greater role inherits rules from all lower ones.
 
-    Calculation of load (peakLoad, loadLevel) is a measurement thru model, not traffic measuring.
+    Calculation of load (peakLoad, loadLevel). An estimate from a model, not measured traffic.
 
 servers:
   - url: http://localhost:8080
@@ -32,14 +32,14 @@ paths:
       description: |
         **Who can call:** anyone. Token is not required.
 
-        | Content | Acess for GUEST | Acess for USER/ANALYST/ADMIN |
+        | Content | Access for GUEST | Acess for USER/ANALYST/ADMIN |
         |---|---|---|
         | Basic point info (name, address, borough, district, coordinates, status) | yes | yes |
-        | `nearestStop`, `peakLoad`, `loadLevel`, filelds in response | no (no fields) | yes |
+        | `nearestStop`, `peakLoad`, `loadLevel`, fields in response | no (no fields) | yes |
         | `transportType`, `distanceFrom/To`, `loadFrom/To` filters | no, 401 | yes |
-        | `nearestStopDistance`, `peakLoad` sorting | no, 401 | yes
+        | `nearestStopDistance`, `peakLoad` sorting | no, 401 | yes |
         | `page` max number | 4 [may be more] | no restrictions |
-        | `cursor` parameter (keyset-pagination) | no, 401 (page limit emitted otherwise) | yes |
+        | `cursor` parameter (keyset-pagination) | no, 401 (page limit bypassed otherwise) | yes |
         | `size` max value | 20 [may be more] | 100 |
 
         Page numbering is 0-based. `cursor` parameter is an alternative for `page` (keyset-pagination):
@@ -70,7 +70,7 @@ paths:
           schema: {type: integer, minimum: 1, maximum: 100, default: 20}
         - name: cursor
           in: query
-          x-min-user: USER
+          x-min-role: USER
           description: Next page cursor from `nextCursor` field. Cannot be with `page`. For USER and greater.
           schema: {type: string, maxLength: 512}
         - name: sort
@@ -122,7 +122,7 @@ paths:
         - name: loadFrom
           in: query
           x-min-role: USER
-          description: Calculated peak load, greater than or equal to (per./point). For USER and grater.
+          description: Calculated peak load, greater than or equal to (per./point). For USER and greater.
           schema: { type: number, minimum: 0 }
         - name: loadTo
           in: query
@@ -148,7 +148,7 @@ paths:
                         location: { lat: 55.7648, lon: 37.6055 }
                         status: ACTIVE
                       - id: 1002
-                        name: "Point in the suare"
+                        name: "Point in the square"
                         address: "пл. Говновротская, 3"
                         borough: "ЦАО"
                         district: "Тверской"
@@ -205,7 +205,7 @@ paths:
       description: |
         **Who can call:** anyone. Token is required for load level of a point (inherits rules from AccessPoint schema).
 
-        Give information of a specific Wi-Fi access point with no restrictions.
+        Give information of a specific Wi-Fi access point with same restrictions as the list.
       security:
         - {}
         - bearerAuth: []
@@ -233,7 +233,7 @@ paths:
                     location: {lat: 55.7648, lon: 37.6055}
                     status: ACTIVE
                 user:
-                  summary: Response to authorized user, no fields are abscent.
+                  summary: Response to authorized user, no fields are absent.
                   value:
                     id: 1001
                     name: "Point by the park entrance"
@@ -313,17 +313,17 @@ components:
         nearestStop:
           allOf:
             - $ref: '#/components/schemas/NearestStop'
-          description: For USER and greater. Field is abscent for GUEST.
+          description: For USER and greater. Field is absent for GUEST.
         peakLoad:
           type: number
           x-min-role: USER
           description: |
             Calculated peak load on weekdays, per./point. Evaluation, not measured traffic.
-            For USER and greater. Field is abscent for GUEST.
+            For USER and greater. Field is absent for GUEST.
         loadLevel:
           allOf:
             - $ref: '#/components/schemas/LoadLevel'
-          description: For USER and greater. Field is abscent for GUEST.
+          description: For USER and greater. Field is absent for GUEST.
 
     PageOfAccessPoints:
       type: object
@@ -369,8 +369,8 @@ components:
         application/problem+json:
           schema: { $ref: '#/components/schemas/Problem' }
           examples:
-            access-points:
-              summary: Example error response for /api/v1/access-points (page size too big)
+            validationError:
+              summary: A query or body field failed validation
               value:
                 type: /problems/validation-error
                 title: Invalid request parameters.
@@ -379,8 +379,8 @@ components:
                 instance: /api/v1/access-points
                 errors:
                   - { field: size, message: "must be no greater than 100" }
-            access-points/{id}:
-              summary: Example error response for /api/v1/access-points/{id} (id not found)
+            invalidId:
+              summary: A path id is malformed
               value:
                 type: /problems/invalid-id
                 title: Id is invalid.
@@ -442,7 +442,7 @@ components:
             title: Not found
             status: 404
             detail: No such resource on the server
-            instance: /api/v1/reports
+            instance: /api/v1/access-points/9348573963236346346236457367 # this is not supposed to exist
 
     TooManyRequests:
       description: Request count limit is exceeded.
@@ -455,7 +455,7 @@ components:
           schema: { $ref: '#/components/schemas/Problem' }
           example:
             type: /problems/rate-limit
-            title: Too many TooManyRequests
+            title: Too many Requests
             status: 429
             detail: Retry the request later.
             instance: /api/v1/access-points
