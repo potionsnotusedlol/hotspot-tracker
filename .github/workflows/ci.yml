@@ -89,7 +89,7 @@ jobs:
         run: bash ops/ci/check-repo-rules.sh "$BASE_SHA"
 
       - name: Check shell scripts
-        run: shellcheck ops/ci/*.sh ops/compose/initdb/*.sh
+        run: shellcheck ops/ci/*.sh ops/compose/initdb/*.sh .githooks/*
 
       - name: Check workflows
         uses: docker://rhysd/actionlint:1.7.12

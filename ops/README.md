@@ -2,6 +2,19 @@
 
 Infrastructure for local development, CI and testing.
 
+## Git hooks
+
+Fast local checks that catch problems before they reach GitHub. Enable them once per clone:
+
+```sh
+git config core.hooksPath .githooks
+```
+
+- `pre-commit`: the repository rules from CI (`ops/ci/check-repo-rules.sh --staged`) and a secret scan. The scan uses [gitleaks](https://github.com/gitleaks/gitleaks) when it is installed, otherwise it matches common token formats.
+- `commit-msg`: the first line follows [Conventional Commits](https://www.conventionalcommits.org) and is in English, e.g. `feat(server): add access point search`.
+
+They work in Git Bash on Windows and in the terminal on Linux and macOS, and also apply to commits made from an IDE or by an AI assistant. CI runs the same repository rules, so `git commit --no-verify` only postpones the failure.
+
 ## Local environment: PostgreSQL + PostGIS and Redis
 
 | Service | Image | Host address |
