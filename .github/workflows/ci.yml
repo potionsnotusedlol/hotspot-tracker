@@ -73,6 +73,29 @@ jobs:
           echo "Modules to build: $json"
           echo "modules=$json" >> "$GITHUB_OUTPUT"
 
+  repo-rules:
+    name: Repository rules
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Check out
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
+      - name: Check repository rules
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: bash ops/ci/check-repo-rules.sh "$BASE_SHA"
+
+      - name: Check shell scripts
+        run: shellcheck ops/ci/*.sh ops/compose/initdb/*.sh
+
+      - name: Check workflows
+        uses: docker://rhysd/actionlint:1.7.12
+        with:
+          args: -color
+
   build:
     name: ${{ matrix.module }}
     needs: changes
@@ -82,12 +105,13 @@ jobs:
       matrix:
         module: ${{ fromJSON(needs.changes.outputs.modules) }}
     uses: ./.github/workflows/gradle-module.yml
+    secrets: inherit
     with:
       module: ${{ matrix.module }}
 
   result:
     name: CI result
-    needs: [changes, build]
+    needs: [changes, repo-rules, build]
     if: ${{ always() }}
     runs-on: ubuntu-24.04
     timeout-minutes: 5
