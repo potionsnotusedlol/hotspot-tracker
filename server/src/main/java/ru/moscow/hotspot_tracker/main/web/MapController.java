@@ -35,7 +35,7 @@ class MapController {
         String selected = StringUtils.hasText(okrug) ? okrug : null;
         String source = UriComponentsBuilder.fromPath("/map/points")
                 .queryParamIfPresent("okrug", Optional.ofNullable(selected))
-                .build().toUriString();
+                .build().encode().toUriString();
 
         model.addAttribute("okrugs", stats.byOkrug());
         model.addAttribute("selectedOkrug", selected);

@@ -99,7 +99,8 @@ class CatalogController {
         put(params, "size", query.size());
         put(params, "sort", query.sort());
         put(params, "page", page);
-        return UriComponentsBuilder.fromPath(path).queryParams(params).build().toUriString();
+        // Кодируем: в заголовке HX-Push-Url и в href кириллица и пробелы без этого ломают ответ
+        return UriComponentsBuilder.fromPath(path).queryParams(params).build().encode().toUriString();
     }
 
     private static void put(MultiValueMap<String, String> params, String key, Object value) {
