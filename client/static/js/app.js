@@ -11,7 +11,11 @@ document.addEventListener('DOMContentLoaded', function() {
     
     htmx.config.defaultSwapStyle = 'innerHTML';
     // ↑ Заменять внутреннее содержимое (не весь элемент)
-    
+
+    htmx.config.includeIndicatorStyles = false;
+    // ↑ htmx по умолчанию вставляет свой <style>, CSP его запрещает.
+    //   Стили индикатора лежат в components.css
+
     // Слушаем HTMX события
     document.body.addEventListener('htmx:configRequest', function(event) {
         // ↑ Перед каждым запросом HTMX
@@ -24,6 +28,15 @@ document.addEventListener('DOMContentLoaded', function() {
         if (token && header) {
             event.detail.headers[header] = token;
             // ↑ Добавляем токен в заголовок запроса
+        }
+    });
+
+    // Очищаем поле чата после успешной отправки
+    document.body.addEventListener('htmx:afterRequest', function(event) {
+        const form = event.detail.elt;
+        if (form && form.classList.contains('chat-form') && event.detail.successful) {
+            form.reset();
+            // ↑ hx-on для этого CSP не разрешает, поэтому делаем здесь
         }
     });
 });

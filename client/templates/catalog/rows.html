@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:fragment="rows">
+    <p class="result-count">Найдено точек: <strong th:text="${page.totalElements}">0</strong></p>
+
+    <div th:if="${page.empty}" class="empty-state">
+        <p>По этим условиям точек не нашлось. Попробуйте изменить фильтры.</p>
+    </div>
+
+    <div th:unless="${page.empty}" class="table-wrap">
+        <table>
+            <caption class="visually-hidden">Точки доступа по выбранным фильтрам</caption>
+            <thead>
+            <tr>
+                <th scope="col">Название</th>
+                <th scope="col">Округ</th>
+                <th scope="col">Район</th>
+                <th scope="col">Ближайший транспорт</th>
+                <th scope="col">До остановки, м</th>
+                <th scope="col">Нагрузка, чел. (оценка)</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="p : ${page.content}">
+                <td><a th:href="@{/access-points/{id}(id=${p.id()})}" th:text="${p.name()}">Точка</a></td>
+                <td th:text="${p.okrug()}">Округ</td>
+                <td th:text="${p.district()}">Район</td>
+                <td th:text="${p.nearestTransport().label()}">Транспорт</td>
+                <td th:text="${p.distanceToStopM()}">0</td>
+                <td>
+                    <span th:text="${#numbers.formatDecimal(p.estimatedLoad(), 1, 0)}">0</span>
+                    <span class="badge" th:classappend="'badge-' + ${#strings.toLowerCase(p.loadLevel().name())}"
+                          th:text="${p.loadLevel().label()}">Уровень</span>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <nav th:unless="${page.empty}" class="pagination" aria-label="Страницы каталога">
+        <a th:if="${page.hasPrevious()}" class="btn btn-outline"
+           th:href="${prevUrl}" th:attr="hx-get=${prevRowsUrl}" hx-target="#catalog-results">Назад</a>
+        <span>Страница <span th:text="${page.number + 1}">1</span> из <span th:text="${page.totalPages}">1</span></span>
+        <a th:if="${page.hasNext()}" class="btn btn-outline"
+           th:href="${nextUrl}" th:attr="hx-get=${nextRowsUrl}" hx-target="#catalog-results">Вперёд</a>
+    </nav>
+
+    <p class="note">Нагрузка указана как расчётная оценка, а не измеренный трафик.</p>
+</div>
+</body>
+</html>
