@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:fragment="list" id="report-list"
+     th:attr="hx-get=${hasActive} ? '/reports/list' : null,hx-trigger=${hasActive} ? 'every 5s' : null,hx-swap=${hasActive} ? 'outerHTML' : null">
+
+    <div th:if="${error != null}" class="alert alert-error" role="alert" th:text="${error}">Ошибка</div>
+
+    <p th:if="${rows.empty}" class="empty-state">Отчётов пока нет. Создайте первый выше.</p>
+
+    <div th:unless="${rows.empty}" class="table-wrap">
+        <table>
+            <caption class="visually-hidden">Ваши отчёты и их статус</caption>
+            <thead>
+            <tr>
+                <th scope="col">Тип</th>
+                <th scope="col">Создан</th>
+                <th scope="col">Статус</th>
+                <th scope="col">Файл</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="r : ${rows}">
+                <td th:text="${r.type()}">Тип</td>
+                <td th:text="${r.created()}">01.01.2026 10:00</td>
+                <td>
+                    <span th:text="${r.status()}">Статус</span>
+                    <span th:if="${r.failed()}" th:text="${r.error()}" class="note"></span>
+                </td>
+                <td>
+                    <a th:if="${r.ready()}" class="btn btn-outline"
+                       th:href="@{/reports/{id}/file(id=${r.id()})}">Скачать Excel</a>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+</body>
+</html>

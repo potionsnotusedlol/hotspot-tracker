@@ -1,11 +1,20 @@
 <!DOCTYPE html>
 <html lang="ru" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
       th:replace="~{layout/base :: layout('Статистика', ~{::main})}">
 <body>
 <main id="main" class="main-content" tabindex="-1">
     <div class="container">
         <h1>Статистика</h1>
         <p class="result-count">Всего точек: <strong th:text="${total}">0</strong></p>
+
+        <div class="toolbar">
+            <form sec:authorize="isAuthenticated()" th:action="@{/reports}" method="post">
+                <input type="hidden" name="type" value="MOSCOW">
+                <button type="submit" class="btn btn-outline">Сформировать сводный Excel</button>
+            </form>
+            <p sec:authorize="!isAuthenticated()"><a href="/login">Войдите</a>, чтобы скачать сводный Excel-отчёт.</p>
+        </div>
 
         <form class="filters" action="/stats" method="get">
             <div class="filter-field">

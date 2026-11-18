@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="ru" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
       th:replace="~{layout/base :: layout(${point.name()}, ~{::main})}">
 <body>
 <main id="main" class="main-content" tabindex="-1">
@@ -7,6 +8,15 @@
         <p><a href="/catalog" class="nav-link">← К каталогу</a></p>
         <h1 th:text="${point.name()}">Точка доступа</h1>
         <p class="note">Все показатели нагрузки — расчётная оценка, а не измеренный трафик.</p>
+
+        <div class="toolbar">
+            <form sec:authorize="isAuthenticated()" th:action="@{/reports}" method="post">
+                <input type="hidden" name="type" value="ACCESS_POINT">
+                <input type="hidden" name="accessPointId" th:value="${point.id()}">
+                <button type="submit" class="btn btn-outline">Скачать отчёт по точке (Excel)</button>
+            </form>
+            <p sec:authorize="!isAuthenticated()"><a href="/login">Войдите</a>, чтобы скачать отчёт по точке.</p>
+        </div>
 
         <div class="card-grid">
             <section class="panel" aria-labelledby="facts-title">
