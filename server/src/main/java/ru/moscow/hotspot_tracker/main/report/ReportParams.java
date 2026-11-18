@@ -49,7 +49,9 @@ public record ReportParams(Long accessPointId, String okrug, String district, In
         if (days != null) {
             params.add("days", days.toString());
         }
-        return UriComponentsBuilder.newInstance().queryParams(params).build().getQuery();
+        String query = UriComponentsBuilder.newInstance().queryParams(params).build().getQuery();
+        // Без параметров (например, сводный отчёт по Москве) getQuery() возвращает null, а в базе нужна строка
+        return query == null ? "" : query;
     }
 
     static ReportParams fromQuery(String query) {
