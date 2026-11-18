@@ -18,14 +18,14 @@ import org.springframework.stereotype.Service;
 @Service
 class PlaceholderAccessPointService implements AccessPointService {
 
-    private static final List<AccessPointView> POINTS = buildSample();
-
     private static final String[][] DISTRICTS = {
             {"Центральный", "Тверской"},
             {"Северный", "Савёловский"},
             {"Южный", "Нагатинский"},
             {"Западный", "Очаково-Матвеевское"}
     };
+
+    private static final List<AccessPointView> POINTS = buildSample();
 
     @Override
     public Page<AccessPointView> search(CatalogFilter filter, Pageable pageable) {
