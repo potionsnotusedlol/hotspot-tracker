@@ -27,6 +27,12 @@
     <div th:replace="~{layout/header :: header}"></div>
     <div th:replace="~{layout/navigation :: navigation}"></div>
 
+    <div th:if="${placeholders}" class="container">
+        <p class="alert alert-warning" role="note">
+            Часть данных демонстрационная: модули, которые её поставляют, ещё не подключены.
+        </p>
+    </div>
+
     <main th:replace="${pageContent}"></main>
 
     <div th:replace="~{layout/footer :: footer}"></div>

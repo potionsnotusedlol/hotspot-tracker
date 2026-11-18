@@ -327,3 +327,9 @@ dl.facts dd {
         width: calc(50% - var(--spacing-xs));
     }
 }
+
+.alert-warning {
+    background-color: #fef5e7;
+    color: #7e5109;
+    border: 1px solid var(--warning-color);
+}
