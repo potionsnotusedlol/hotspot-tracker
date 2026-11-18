@@ -1,10 +1,24 @@
-<nav class="navigation" style="background-color: #f8f9fa; padding: 1rem 0; border-bottom: 1px solid #e1e8ed;">
-    <div class="container" style="display: flex; gap: 2rem;">
-        <!-- ↑ Горизонтальное меню с отступами между ссылками -->
-        
-        <a href="/" style="color: #0066cc; text-decoration: none; font-weight: 600;">Главная</a>
-        <a href="/catalog" style="color: #0066cc; text-decoration: none; font-weight: 600;">Каталог</a>
-        <a href="/reports" style="color: #0066cc; text-decoration: none; font-weight: 600;">Отчёты</a>
-        <a href="/admin" style="color: #0066cc; text-decoration: none; font-weight: 600;">Админ</a>
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<body>
+<nav class="navigation" th:fragment="navigation" aria-label="Основное меню">
+    <div class="container navigation-list">
+        <a href="/" class="nav-link"
+           th:attr="aria-current=${#httpServletRequest.requestURI == '/' ? 'page' : null}">Главная</a>
+        <a href="/catalog" class="nav-link"
+           th:attr="aria-current=${#strings.startsWith(#httpServletRequest.requestURI, '/catalog') or #strings.startsWith(#httpServletRequest.requestURI, '/access-points') ? 'page' : null}">Каталог</a>
+        <a href="/map" class="nav-link"
+           th:attr="aria-current=${#httpServletRequest.requestURI == '/map' ? 'page' : null}">Карта</a>
+        <a href="/stats" class="nav-link"
+           th:attr="aria-current=${#httpServletRequest.requestURI == '/stats' ? 'page' : null}">Статистика</a>
+        <a href="/reports" class="nav-link" sec:authorize="isAuthenticated()"
+           th:attr="aria-current=${#httpServletRequest.requestURI == '/reports' ? 'page' : null}">Отчёты</a>
+        <a href="/profile" class="nav-link" sec:authorize="isAuthenticated()"
+           th:attr="aria-current=${#httpServletRequest.requestURI == '/profile' ? 'page' : null}">Профиль</a>
+        <a href="/admin" class="nav-link" sec:authorize="hasRole('ADMIN')"
+           th:attr="aria-current=${#strings.startsWith(#httpServletRequest.requestURI, '/admin') ? 'page' : null}">Админ</a>
     </div>
 </nav>
+</body>
+</html>
