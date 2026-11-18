@@ -7,7 +7,7 @@
         <h1>Карта точек доступа</h1>
         <p class="note">Цвет точки показывает расчётную нагрузку (оценка). Группы раскрываются при приближении.</p>
 
-        <form class="filters" action="/map" method="get">
+        <form class="filters" th:action="@{/map}" method="get">
             <div class="filter-field">
                 <label for="map-okrug">Округ</label>
                 <select id="map-okrug" name="okrug">

@@ -7,7 +7,7 @@
         <h1>Каталог точек доступа</h1>
 
         <!-- Фильтры: изменение любого поля обновляет таблицу без перезагрузки страницы -->
-        <form id="catalog-filters" class="filters" action="/catalog" method="get"
+        <form id="catalog-filters" class="filters" th:action="@{/catalog}" method="get"
               hx-get="/catalog/rows" hx-target="#catalog-results" hx-swap="innerHTML"
               hx-trigger="change, keyup changed delay:400ms">
 

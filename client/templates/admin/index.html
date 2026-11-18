@@ -56,7 +56,7 @@
                         <td th:text="${p.version()}">1</td>
                         <td th:text="${p.changedBy() + ', ' + p.changedAt()}">system</td>
                         <td>
-                            <form class="inline-form" action="/admin/model-params" method="post">
+                            <form class="inline-form" th:action="@{/admin/model-params}" method="post">
                                 <input type="hidden" name="key" th:value="${p.key()}">
                                 <label class="visually-hidden" th:for="'value-' + ${p.key()}">Новое значение</label>
                                 <input th:id="'value-' + ${p.key()}" type="text" name="value" maxlength="100" required>

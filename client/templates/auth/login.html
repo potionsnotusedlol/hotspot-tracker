@@ -11,7 +11,7 @@
         </div>
         <div th:if="${param.logout != null}" class="alert alert-success" role="status">Вы вышли из системы.</div>
 
-        <form action="/login" method="post">
+        <form th:action="@{/login}" method="post">
             <div class="form-group">
                 <label for="login-email">Email</label>
                 <input id="login-email" type="email" name="username" autocomplete="username" required>

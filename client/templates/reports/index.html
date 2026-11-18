@@ -11,7 +11,7 @@
         <div th:if="${message != null}" class="alert alert-success" role="status" th:text="${message}">Готово</div>
         <div th:if="${error != null}" class="alert alert-error" role="alert" th:text="${error}">Ошибка</div>
 
-        <form id="report-form" class="filters" action="/reports" method="post"
+        <form id="report-form" class="filters" th:action="@{/reports}" method="post"
               hx-post="/reports" hx-target="#report-list" hx-swap="outerHTML">
 
             <div class="filter-field">

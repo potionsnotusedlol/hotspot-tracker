@@ -16,7 +16,7 @@
             <p sec:authorize="!isAuthenticated()"><a href="/login">Войдите</a>, чтобы скачать сводный Excel-отчёт.</p>
         </div>
 
-        <form class="filters" action="/stats" method="get">
+        <form class="filters" th:action="@{/stats}" method="get">
             <div class="filter-field">
                 <label for="s-okrug">Округ (для районов)</label>
                 <select id="s-okrug" name="okrug">

@@ -8,7 +8,7 @@
 
         <div th:if="${error != null}" class="alert alert-error" role="alert" th:text="${error}">Ошибка</div>
 
-        <form action="/register" method="post">
+        <form th:action="@{/register}" method="post">
             <div class="form-group">
                 <label for="reg-email">Email</label>
                 <input id="reg-email" type="email" name="email" th:value="${email}" autocomplete="email" required maxlength="255">
