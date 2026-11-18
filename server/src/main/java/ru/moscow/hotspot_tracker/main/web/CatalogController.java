@@ -15,11 +15,11 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.util.UriComponentsBuilder;
-import ru.moscow.hotspot_tracker.main.accesspoint.AccessPointService;
-import ru.moscow.hotspot_tracker.main.accesspoint.AccessPointService.AccessPointView;
-import ru.moscow.hotspot_tracker.main.accesspoint.AccessPointService.CatalogFilter;
-import ru.moscow.hotspot_tracker.main.accesspoint.TransportType;
-import ru.moscow.hotspot_tracker.main.stats.StatsService;
+import ru.moscow.hotspot_tracker.main.web.port.AccessPointService;
+import ru.moscow.hotspot_tracker.main.web.port.AccessPointService.AccessPointView;
+import ru.moscow.hotspot_tracker.main.web.port.AccessPointService.CatalogFilter;
+import ru.moscow.hotspot_tracker.main.web.port.TransportType;
+import ru.moscow.hotspot_tracker.main.web.port.StatsService;
 
 /**
  * Каталог точек доступа (FR-CAT, FR-WEB-02). Полная страница открывается по /catalog,

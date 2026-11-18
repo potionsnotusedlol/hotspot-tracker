@@ -1,4 +1,4 @@
-package ru.moscow.hotspot_tracker.main.accesspoint;
+package ru.moscow.hotspot_tracker.main.web.port;
 
 /** Тип дня для профиля нагрузки (FR-LOAD-01). */
 public enum DayType {

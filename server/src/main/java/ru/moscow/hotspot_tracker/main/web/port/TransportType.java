@@ -1,4 +1,4 @@
-package ru.moscow.hotspot_tracker.main.accesspoint;
+package ru.moscow.hotspot_tracker.main.web.port;
 
 /** Вид ближайшего транспорта (FR-STAT-03). */
 public enum TransportType {

@@ -7,11 +7,11 @@ import org.springframework.ui.Model;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import ru.moscow.hotspot_tracker.main.accesspoint.TransportType;
-import ru.moscow.hotspot_tracker.main.stats.StatsService;
-import ru.moscow.hotspot_tracker.main.stats.StatsService.DistanceBucket;
-import ru.moscow.hotspot_tracker.main.stats.StatsService.DistrictCount;
-import ru.moscow.hotspot_tracker.main.stats.StatsService.OkrugCount;
+import ru.moscow.hotspot_tracker.main.web.port.TransportType;
+import ru.moscow.hotspot_tracker.main.web.port.StatsService;
+import ru.moscow.hotspot_tracker.main.web.port.StatsService.DistanceBucket;
+import ru.moscow.hotspot_tracker.main.web.port.StatsService.DistrictCount;
+import ru.moscow.hotspot_tracker.main.web.port.StatsService.OkrugCount;
 
 /** Статистика по округам, районам и расстояниям до транспорта (FR-STAT-01…04). */
 @Controller

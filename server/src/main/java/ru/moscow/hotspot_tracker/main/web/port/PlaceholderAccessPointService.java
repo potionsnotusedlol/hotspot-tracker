@@ -1,20 +1,22 @@
-package ru.moscow.hotspot_tracker.main.accesspoint;
+package ru.moscow.hotspot_tracker.main.web.port;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 /**
- * ВРЕМЕННАЯ ЗАГЛУШКА. Отдаёт демонстрационные точки, пока модуль данных (№2) не реализовал
- * AccessPointService. Сортировку не применяет. Удалить, когда появится настоящая реализация.
+ * ЗАГЛУШКА веба: демонстрационные точки, пока модуль данных не реализовал AccessPointService.
+ * Отключается свойством hotspot.web.placeholders=false, когда появляется настоящая реализация.
  */
+@ConditionalOnProperty(prefix = "hotspot.web", name = "placeholders", havingValue = "true", matchIfMissing = true)
 @Service
-class StubAccessPointService implements AccessPointService {
+class PlaceholderAccessPointService implements AccessPointService {
 
     private static final List<AccessPointView> POINTS = buildSample();
 

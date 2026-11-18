@@ -10,10 +10,10 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.util.UriComponentsBuilder;
-import ru.moscow.hotspot_tracker.main.accesspoint.AccessPointService;
-import ru.moscow.hotspot_tracker.main.accesspoint.AccessPointService.CatalogFilter;
-import ru.moscow.hotspot_tracker.main.accesspoint.AccessPointService.MapPoint;
-import ru.moscow.hotspot_tracker.main.stats.StatsService;
+import ru.moscow.hotspot_tracker.main.web.port.AccessPointService;
+import ru.moscow.hotspot_tracker.main.web.port.AccessPointService.CatalogFilter;
+import ru.moscow.hotspot_tracker.main.web.port.AccessPointService.MapPoint;
+import ru.moscow.hotspot_tracker.main.web.port.StatsService;
 
 /** Карта точек с кластерами, окрашенными по расчётной нагрузке (FR-WEB-03). */
 @Controller

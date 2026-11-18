@@ -1,8 +1,8 @@
-package ru.moscow.hotspot_tracker.main.stats;
+package ru.moscow.hotspot_tracker.main.web.port;
 
 import java.util.List;
-import ru.moscow.hotspot_tracker.main.accesspoint.AccessPointService.AccessPointView;
-import ru.moscow.hotspot_tracker.main.accesspoint.TransportType;
+import ru.moscow.hotspot_tracker.main.web.port.AccessPointService.AccessPointView;
+import ru.moscow.hotspot_tracker.main.web.port.TransportType;
 
 /**
  * Статистика по точкам доступа (FR-STAT). Владелец — модуль данных (№2), веб показывает результат как есть.

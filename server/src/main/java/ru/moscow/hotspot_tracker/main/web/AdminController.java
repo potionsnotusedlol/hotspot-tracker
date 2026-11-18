@@ -15,15 +15,15 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import ru.moscow.hotspot_tracker.main.audit.AuditLogService;
-import ru.moscow.hotspot_tracker.main.audit.AuditLogService.AuditEntry;
-import ru.moscow.hotspot_tracker.main.importer.ImportJobService;
-import ru.moscow.hotspot_tracker.main.load.ModelParamService;
-import ru.moscow.hotspot_tracker.main.load.ModelParamService.ModelParam;
-import ru.moscow.hotspot_tracker.main.user.Role;
-import ru.moscow.hotspot_tracker.main.user.UserAccountService;
-import ru.moscow.hotspot_tracker.main.user.UserAccountService.UserAccount;
-import ru.moscow.hotspot_tracker.main.usage.UsageEventService;
+import ru.moscow.hotspot_tracker.main.web.port.AuditLogService;
+import ru.moscow.hotspot_tracker.main.web.port.AuditLogService.AuditEntry;
+import ru.moscow.hotspot_tracker.main.web.port.ImportJobService;
+import ru.moscow.hotspot_tracker.main.web.port.ModelParamService;
+import ru.moscow.hotspot_tracker.main.web.port.ModelParamService.ModelParam;
+import ru.moscow.hotspot_tracker.main.web.port.Role;
+import ru.moscow.hotspot_tracker.main.web.port.UserAccountService;
+import ru.moscow.hotspot_tracker.main.web.port.UserAccountService.UserAccount;
+import ru.moscow.hotspot_tracker.main.web.port.UsageEventService;
 
 /**
  * Админ-панель (FR-ADM-01…03): пользователи и роли, параметры модели, журналы, сводка использования.

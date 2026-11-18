@@ -15,18 +15,18 @@ import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
-import ru.moscow.hotspot_tracker.main.accesspoint.AccessPointService;
-import ru.moscow.hotspot_tracker.main.accesspoint.AccessPointService.AccessPointView;
-import ru.moscow.hotspot_tracker.main.accesspoint.AccessPointService.CatalogFilter;
-import ru.moscow.hotspot_tracker.main.accesspoint.AccessPointService.HourlyLoad;
-import ru.moscow.hotspot_tracker.main.accesspoint.DayType;
-import ru.moscow.hotspot_tracker.main.accesspoint.TransportType;
-import ru.moscow.hotspot_tracker.main.stats.StatsService;
-import ru.moscow.hotspot_tracker.main.stats.StatsService.DistanceBucket;
-import ru.moscow.hotspot_tracker.main.stats.StatsService.DistrictCount;
-import ru.moscow.hotspot_tracker.main.stats.StatsService.OkrugCount;
-import ru.moscow.hotspot_tracker.main.usage.UsageEventService;
-import ru.moscow.hotspot_tracker.main.usage.UsageEventService.UsageSummary;
+import ru.moscow.hotspot_tracker.main.web.port.AccessPointService;
+import ru.moscow.hotspot_tracker.main.web.port.AccessPointService.AccessPointView;
+import ru.moscow.hotspot_tracker.main.web.port.AccessPointService.CatalogFilter;
+import ru.moscow.hotspot_tracker.main.web.port.AccessPointService.HourlyLoad;
+import ru.moscow.hotspot_tracker.main.web.port.DayType;
+import ru.moscow.hotspot_tracker.main.web.port.TransportType;
+import ru.moscow.hotspot_tracker.main.web.port.StatsService;
+import ru.moscow.hotspot_tracker.main.web.port.StatsService.DistanceBucket;
+import ru.moscow.hotspot_tracker.main.web.port.StatsService.DistrictCount;
+import ru.moscow.hotspot_tracker.main.web.port.StatsService.OkrugCount;
+import ru.moscow.hotspot_tracker.main.web.port.UsageEventService;
+import ru.moscow.hotspot_tracker.main.web.port.UsageEventService.UsageSummary;
 
 /**
  * Пишет Excel потоком через SXSSFWorkbook: в памяти держится только окно строк, данные идут страницами (FR-REP-01).

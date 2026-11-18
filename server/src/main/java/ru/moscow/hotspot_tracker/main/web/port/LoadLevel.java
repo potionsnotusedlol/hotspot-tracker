@@ -1,4 +1,4 @@
-package ru.moscow.hotspot_tracker.main.accesspoint;
+package ru.moscow.hotspot_tracker.main.web.port;
 
 /** Относительная шкала расчётной нагрузки по квантилям (FR-LOAD-03). */
 public enum LoadLevel {

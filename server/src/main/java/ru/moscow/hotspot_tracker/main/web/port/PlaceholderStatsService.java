@@ -1,29 +1,26 @@
-package ru.moscow.hotspot_tracker.main.stats;
+package ru.moscow.hotspot_tracker.main.web.port;
 
 import java.util.Comparator;
 import java.util.List;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
-import ru.moscow.hotspot_tracker.main.accesspoint.AccessPointService;
-import ru.moscow.hotspot_tracker.main.accesspoint.AccessPointService.AccessPointView;
-import ru.moscow.hotspot_tracker.main.accesspoint.AccessPointService.CatalogFilter;
-import ru.moscow.hotspot_tracker.main.accesspoint.TransportType;
+import ru.moscow.hotspot_tracker.main.web.port.AccessPointService.AccessPointView;
+import ru.moscow.hotspot_tracker.main.web.port.AccessPointService.CatalogFilter;
 
-/**
- * ВРЕМЕННАЯ ЗАГЛУШКА. Считает статистику по демонстрационным точкам из заглушки каталога.
- * Удалить, когда модуль данных (№2) подключит настоящую статистику.
- */
+/** ЗАГЛУШКА веба: статистика по демонстрационным точкам. Отключается с появлением StatsService. */
+@ConditionalOnProperty(prefix = "hotspot.web", name = "placeholders", havingValue = "true", matchIfMissing = true)
 @Service
-class StubStatsService implements StatsService {
+class PlaceholderStatsService implements StatsService {
 
     private static final CatalogFilter NO_FILTER =
             new CatalogFilter(null, null, null, null, null, null, null, null, null);
 
     private final AccessPointService accessPoints;
 
-    StubStatsService(AccessPointService accessPoints) {
+    PlaceholderStatsService(AccessPointService accessPoints) {
         this.accessPoints = accessPoints;
     }
 

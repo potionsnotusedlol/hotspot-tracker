@@ -10,6 +10,10 @@ spring:
       static-locations: file:${WEB_CLIENT_DIR:../client}/static/
 
 hotspot:
+  web:
+    # true: веб работает на заглушках портов (web/port). Модуль, который подключил
+    # свою реализацию порта, ставит false, иначе будет два бина одного интерфейса
+    placeholders: ${WEB_PLACEHOLDERS:true}
   reports:
     # Готовые Excel-файлы, по умолчанию в var/ в корне репозитория
     storage-dir: ${REPORTS_DIR:../var/reports}

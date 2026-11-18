@@ -9,10 +9,10 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.server.ResponseStatusException;
-import ru.moscow.hotspot_tracker.main.accesspoint.AccessPointService;
-import ru.moscow.hotspot_tracker.main.accesspoint.AccessPointService.AccessPointView;
-import ru.moscow.hotspot_tracker.main.accesspoint.AccessPointService.HourlyLoad;
-import ru.moscow.hotspot_tracker.main.accesspoint.DayType;
+import ru.moscow.hotspot_tracker.main.web.port.AccessPointService;
+import ru.moscow.hotspot_tracker.main.web.port.AccessPointService.AccessPointView;
+import ru.moscow.hotspot_tracker.main.web.port.AccessPointService.HourlyLoad;
+import ru.moscow.hotspot_tracker.main.web.port.DayType;
 
 /** Карточка точки (FR-CAT-04): данные, карта, ближайшие остановки и почасовая нагрузка. */
 @Controller

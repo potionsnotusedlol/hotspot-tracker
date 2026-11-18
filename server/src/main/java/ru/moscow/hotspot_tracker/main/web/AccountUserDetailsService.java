@@ -1,12 +1,13 @@
-package ru.moscow.hotspot_tracker.main.user;
+package ru.moscow.hotspot_tracker.main.web;
 
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import ru.moscow.hotspot_tracker.main.web.port.UserAccountService;
 
-/** Мост между формой входа Spring Security и учётными записями. */
+/** Мост между формой входа Spring Security и учётными записями из порта UserAccountService. */
 @Service
 class AccountUserDetailsService implements UserDetailsService {
 

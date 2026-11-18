@@ -7,7 +7,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.server.ResponseStatusException;
-import ru.moscow.hotspot_tracker.main.chat.ChatService;
+import ru.moscow.hotspot_tracker.main.web.port.ChatService;
 
 /** Виджет чата (FR-WEB-05): вопрос уходит в ChatService, в ответ приходит кусок HTML для HTMX. */
 @Controller

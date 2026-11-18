@@ -1,4 +1,4 @@
-package ru.moscow.hotspot_tracker.main.usage;
+package ru.moscow.hotspot_tracker.main.web.port;
 
 import java.time.Instant;
 

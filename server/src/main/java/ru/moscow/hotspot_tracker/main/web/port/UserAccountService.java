@@ -1,4 +1,4 @@
-package ru.moscow.hotspot_tracker.main.user;
+package ru.moscow.hotspot_tracker.main.web.port;
 
 import java.util.List;
 import java.util.Optional;
