@@ -1,6 +1,8 @@
 spring:
   application:
     name: main
+  jpa:
+    open-in-view: false
   thymeleaf:
     # Шаблоны лежат в client/, а не в classpath. Путь задаётся переменной, по умолчанию ../client от каталога server/
     prefix: file:${WEB_CLIENT_DIR:../client}/templates/

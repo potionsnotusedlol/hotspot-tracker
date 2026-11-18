@@ -5,19 +5,19 @@
 <nav class="navigation" th:fragment="navigation" aria-label="Основное меню">
     <div class="container navigation-list">
         <a href="/" class="nav-link"
-           th:attr="aria-current=${#httpServletRequest.requestURI == '/' ? 'page' : null}">Главная</a>
+           th:attr="aria-current=${currentPath == '/' ? 'page' : null}">Главная</a>
         <a href="/catalog" class="nav-link"
-           th:attr="aria-current=${#strings.startsWith(#httpServletRequest.requestURI, '/catalog') or #strings.startsWith(#httpServletRequest.requestURI, '/access-points') ? 'page' : null}">Каталог</a>
+           th:attr="aria-current=${#strings.startsWith(currentPath, '/catalog') or #strings.startsWith(currentPath, '/access-points') ? 'page' : null}">Каталог</a>
         <a href="/map" class="nav-link"
-           th:attr="aria-current=${#httpServletRequest.requestURI == '/map' ? 'page' : null}">Карта</a>
+           th:attr="aria-current=${currentPath == '/map' ? 'page' : null}">Карта</a>
         <a href="/stats" class="nav-link"
-           th:attr="aria-current=${#httpServletRequest.requestURI == '/stats' ? 'page' : null}">Статистика</a>
+           th:attr="aria-current=${currentPath == '/stats' ? 'page' : null}">Статистика</a>
         <a href="/reports" class="nav-link" sec:authorize="isAuthenticated()"
-           th:attr="aria-current=${#httpServletRequest.requestURI == '/reports' ? 'page' : null}">Отчёты</a>
+           th:attr="aria-current=${currentPath == '/reports' ? 'page' : null}">Отчёты</a>
         <a href="/profile" class="nav-link" sec:authorize="isAuthenticated()"
-           th:attr="aria-current=${#httpServletRequest.requestURI == '/profile' ? 'page' : null}">Профиль</a>
+           th:attr="aria-current=${currentPath == '/profile' ? 'page' : null}">Профиль</a>
         <a href="/admin" class="nav-link" sec:authorize="hasRole('ADMIN')"
-           th:attr="aria-current=${#strings.startsWith(#httpServletRequest.requestURI, '/admin') ? 'page' : null}">Админ</a>
+           th:attr="aria-current=${#strings.startsWith(currentPath, '/admin') ? 'page' : null}">Админ</a>
     </div>
 </nav>
 </body>
