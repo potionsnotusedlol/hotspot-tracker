@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/base :: layout('Карта', ~{::main})}">
+<body>
+<main id="main" class="main-content" tabindex="-1">
+    <div class="container">
+        <h1>Карта точек доступа</h1>
+        <p class="note">Цвет точки показывает расчётную нагрузку (оценка). Группы раскрываются при приближении.</p>
+
+        <form class="filters" action="/map" method="get">
+            <div class="filter-field">
+                <label for="map-okrug">Округ</label>
+                <select id="map-okrug" name="okrug">
+                    <option value="">Вся Москва</option>
+                    <option th:each="o : ${okrugs}"
+                            th:value="${o.okrug()}"
+                            th:text="${o.okrug()} + ' (' + ${o.count()} + ')'"
+                            th:selected="${o.okrug() == selectedOkrug}"></option>
+                </select>
+            </div>
+            <div class="filter-actions">
+                <button type="submit" class="btn btn-primary">Показать</button>
+            </div>
+        </form>
+
+        <p id="map-count" class="result-count" aria-live="polite">Загружаем точки…</p>
+
+        <div class="map-canvas" role="region" data-map="cluster"
+             th:attr="data-source=${source},data-counter='map-count',aria-label='Карта точек доступа'"></div>
+
+        <ul class="legend" aria-label="Легенда цветов">
+            <li><span class="dot dot-low" aria-hidden="true"></span> Низкая нагрузка</li>
+            <li><span class="dot dot-medium" aria-hidden="true"></span> Средняя нагрузка</li>
+            <li><span class="dot dot-high" aria-hidden="true"></span> Высокая нагрузка</li>
+        </ul>
+    </div>
+</main>
+</body>
+</html>

@@ -207,6 +207,35 @@ dl.facts dd {
     border-bottom: 1px solid var(--border-color);
 }
 
+.legend {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-sm) var(--spacing-lg);
+    margin-top: var(--spacing-md);
+}
+
+.dot {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    margin-right: var(--spacing-xs);
+    vertical-align: middle;
+}
+
+.dot-low {
+    background-color: #27ae60;
+}
+
+.dot-medium {
+    background-color: #f39c12;
+}
+
+.dot-high {
+    background-color: #e74c3c;
+}
+
 /* Виджет чата */
 .chat-widget {
     position: fixed;
