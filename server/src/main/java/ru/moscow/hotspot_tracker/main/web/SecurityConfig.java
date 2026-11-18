@@ -35,7 +35,7 @@ class SecurityConfig {
     @Bean
     SecurityFilterChain webSecurity(HttpSecurity http) throws Exception {
         http.authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/", "/catalog", "/catalog/rows", "/access-points/**",
+                        .requestMatchers("/", "/catalog", "/catalog/rows", "/catalog/districts", "/access-points/**",
                                 "/map", "/map/points", "/stats", "/stats/**", "/login", "/register",
                                 "/css/**", "/js/**", "/webjars/**", "/error")
                         .permitAll()
