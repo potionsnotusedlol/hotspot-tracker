@@ -1,3 +1,15 @@
 spring:
   application:
     name: main
+  thymeleaf:
+    # Шаблоны лежат в client/, а не в classpath. Путь задаётся переменной, по умолчанию ../client от каталога server/
+    prefix: file:${WEB_CLIENT_DIR:../client}/templates/
+  web:
+    resources:
+      # Статика из client/static; webjars (htmx, chart.js, leaflet) отдаются отдельно
+      static-locations: file:${WEB_CLIENT_DIR:../client}/static/
+
+hotspot:
+  reports:
+    # Готовые Excel-файлы, по умолчанию в var/ в корне репозитория
+    storage-dir: ${REPORTS_DIR:../var/reports}
