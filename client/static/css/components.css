@@ -198,6 +198,15 @@ dl.facts dd {
     margin: 0;
 }
 
+.stop-list {
+    list-style: none;
+}
+
+.stop-list li {
+    padding: var(--spacing-sm) 0;
+    border-bottom: 1px solid var(--border-color);
+}
+
 /* Виджет чата */
 .chat-widget {
     position: fixed;

@@ -1,47 +1,115 @@
-// Утилиты для работы с картами (Leaflet)
+// Карты (Leaflet): карточка точки и карта с кластерами. Данные берём из data-атрибутов и JSON-ответа
 
-let map;
-// ↑ Глобальная переменная для хранения объекта карты
+// Цвет по уровню нагрузки. Уровень также выводится текстом (легенда и таблица), не только цветом
+const LOAD_COLORS = {
+    LOW: '#27ae60',
+    MEDIUM: '#f39c12',
+    HIGH: '#e74c3c'
+};
 
-function initMap(containerId, latitude = 55.7558, longitude = 37.6173, zoom = 11) {
-    // ↑ containerId = id элемента в HTML где карта
-    //   latitude = широта (по умолчанию Москва)
-    //   longitude = долгота (по умолчанию Москва)
-    //   zoom = уровень приближения (11 = хороший для города)
-    
-    map = L.map(containerId).setView([latitude, longitude], zoom);
-    // ↑ Создаём карту и центрируем на координаты
-    
-    // OpenStreetMap слой
+// Центр Москвы, если точек ещё нет
+const MOSCOW_CENTER = [55.7558, 37.6173];
+
+function createMap(element) {
+    const map = L.map(element);
+    // ↑ Создаём карту внутри переданного элемента
+
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '© OpenStreetMap contributors',
         maxZoom: 19
     }).addTo(map);
-    // ↑ Добавляем слой карты (картинки плиток с дорогами)
-    
+    // ↑ Слой с картинками плиток (дороги, дома)
+
     return map;
 }
 
-function addMarker(lat, lng, title, popupText) {
-    // ↑ Добавить маркер (флажок) на карту
-    
-    const marker = L.marker([lat, lng]).addTo(map);
-    // ↑ Создаём маркер и добавляем на карту
-    
-    if (popupText) {
-        marker.bindPopup(popupText);
-        // ↑ При клике на маркер показывается окно с текстом
-    }
-    
-    if (title) {
-        marker.bindTooltip(title);
-        // ↑ При наведении на маркер показывается подсказка
-    }
-    
-    return marker;
+// Карточка точки: одна метка в её координатах
+function initPointMap(element) {
+    const lat = Number(element.dataset.lat);
+    const lon = Number(element.dataset.lon);
+
+    const map = createMap(element).setView([lat, lon], 16);
+    L.marker([lat, lon]).addTo(map).bindTooltip(element.dataset.name);
+    // ↑ Подсказка с названием точки при наведении
 }
 
-function addCluster(markers) {
-    // ↑ Группировать маркеры (если много маркеров, собрать их в один круг)
-    // Пока в коде ничего нет, потому что нужна отдельная библиотека
+// Карта каталога: точки группируются в кластеры, а цвет показывает нагрузку
+function initClusterMap(element) {
+    const map = createMap(element).setView(MOSCOW_CENTER, 11);
+    const clusters = L.markerClusterGroup();
+    map.addLayer(clusters);
+
+    const counter = document.getElementById(element.dataset.counter);
+    // ↑ Элемент, где пишем, сколько точек показано
+
+    fetch(element.dataset.source, { headers: { Accept: 'application/json' }, credentials: 'same-origin' })
+        .then(function(response) {
+            if (!response.ok) {
+                throw new Error('HTTP ' + response.status);
+            }
+            return response.json();
+        })
+        .then(function(points) {
+            points.forEach(function(point) {
+                const marker = L.circleMarker([point.latitude, point.longitude], {
+                    radius: 7,
+                    color: '#ffffff',
+                    weight: 1,
+                    fillColor: LOAD_COLORS[point.loadLevel],
+                    fillOpacity: 0.9
+                });
+
+                marker.bindPopup(buildPopup(point));
+                clusters.addLayer(marker);
+            });
+
+            if (counter) {
+                counter.textContent = 'Точек на карте: ' + points.length;
+            }
+        })
+        .catch(function() {
+            showNotification('Не удалось загрузить точки для карты', 'error');
+        });
 }
+
+// Всплывающее окно строим через DOM: название точки не должно стать HTML
+function buildPopup(point) {
+    const box = document.createElement('div');
+
+    const title = document.createElement('strong');
+    title.textContent = point.name;
+    box.appendChild(title);
+
+    const link = document.createElement('a');
+    link.href = '/access-points/' + encodeURIComponent(point.id);
+    link.textContent = 'Открыть карточку';
+    box.appendChild(document.createElement('br'));
+    box.appendChild(link);
+
+    return box;
+}
+
+// Инициализация карт внутри root. Каждую карту создаём один раз
+function initMaps(root = document) {
+    root.querySelectorAll('[data-map="point"]').forEach(function(element) {
+        if (!element.dataset.ready) {
+            element.dataset.ready = 'true';
+            initPointMap(element);
+        }
+    });
+
+    root.querySelectorAll('[data-map="cluster"]').forEach(function(element) {
+        if (!element.dataset.ready) {
+            element.dataset.ready = 'true';
+            initClusterMap(element);
+        }
+    });
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    initMaps();
+});
+
+document.body.addEventListener('htmx:afterSettle', function(event) {
+    initMaps(event.target);
+});
