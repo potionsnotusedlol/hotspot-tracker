@@ -8,8 +8,7 @@
         <p class="chat-hint">Задайте вопрос о точках доступа, например: «сколько точек в Тверском районе».</p>
     </div>
 
-    <form class="chat-form" hx-post="/chat/widget" hx-target="#chat-messages" hx-swap="beforeend"
-          hx-on::after-request="this.reset()">
+    <form class="chat-form" hx-post="/chat/widget" hx-target="#chat-messages" hx-swap="beforeend">
         <label for="chat-input" class="visually-hidden">Сообщение</label>
         <input id="chat-input" name="message" type="text" maxlength="500" required
                placeholder="Сообщение">
