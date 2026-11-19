@@ -36,7 +36,7 @@ jobs:
           BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
         run: |
           # Gradle modules; each one is a separate build with its own wrapper
-          all_modules="server client tgbot"
+          all_modules="server client tgbot ops/testdata-generator"
 
           # Manual runs and pushes without a usable base build every module
           if [ "$EVENT_NAME" = "workflow_dispatch" ] || [ -z "$BASE_SHA" ] \

@@ -55,11 +55,19 @@ jobs:
         if: ${{ env.SONAR_TOKEN != '' && inputs.module == 'server' }}
         run: ./gradlew sonar -Dsonar.qualitygate.wait=true --console=plain
 
+      # Artifact names cannot contain "/", and a module can be nested (ops/testdata-generator)
+      - name: Name the reports
+        id: reports
+        if: ${{ !cancelled() }}
+        env:
+          MODULE: ${{ inputs.module }}
+        run: echo "name=${MODULE//\//-}-reports" >> "$GITHUB_OUTPUT"
+
       - name: Upload reports
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: ${{ inputs.module }}-reports
+          name: ${{ steps.reports.outputs.name }}
           path: |
             ${{ inputs.module }}/build/reports/
             ${{ inputs.module }}/build/test-results/
