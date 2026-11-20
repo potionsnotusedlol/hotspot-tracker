@@ -1,0 +1,25 @@
+# Prometheus for the local stand (compose profile "monitoring").
+# Targets are compose service names, so it works inside the compose network only.
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: prometheus
+    static_configs:
+      - targets: ["localhost:9090"]
+
+  # The API server (profile "app"). Needs micrometer-registry-prometheus and
+  # the "prometheus" endpoint exposed; until then this target is reported as down.
+  - job_name: app
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ["app:8080"]
+
+  - job_name: postgres
+    static_configs:
+      - targets: ["postgres-exporter:9187"]
+
+  - job_name: redis
+    static_configs:
+      - targets: ["redis-exporter:9121"]
