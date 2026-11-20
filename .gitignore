@@ -36,3 +36,6 @@ ops/testdata-generator/output/
 # Logs
 *.log
 logs/
+
+# Готовые отчёты и локальные файлы
+var/

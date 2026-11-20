@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/base :: layout('Главная', ~{::main})}">
+<body>
+<main id="main" class="main-content" tabindex="-1">
+    <section class="hero">
+        <div class="container">
+            <h1>Wi-Fi Москвы</h1>
+            <p class="subtitle">Информация о точках доступа, статистика использования и аналитика</p>
+            <div class="hero-buttons">
+                <a href="/catalog" class="btn btn-primary">Перейти к каталогу</a>
+                <a href="/stats" class="btn btn-secondary">Статистика</a>
+            </div>
+        </div>
+    </section>
+
+    <section class="summary" aria-labelledby="summary-title">
+        <div class="container">
+            <h2 id="summary-title" class="section-title">Сводка по округам</h2>
+            <p class="result-count">Точек доступа: <strong th:text="${total}">0</strong></p>
+            <div class="table-wrap">
+                <table>
+                    <thead><tr><th scope="col">Округ</th><th scope="col">Точек</th></tr></thead>
+                    <tbody>
+                    <tr th:each="o : ${okrugs}">
+                        <td th:text="${o.okrug()}">Округ</td>
+                        <td th:text="${o.count()}">0</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="form-actions"><a href="/stats">Вся статистика</a></p>
+        </div>
+    </section>
+
+    <section class="features">
+        <div class="container">
+            <h2>Возможности системы</h2>
+            <div class="features-grid">
+                <a href="/catalog" class="feature-card">
+                    <h3>Каталог точек</h3>
+                    <p>Найти точки доступа Wi-Fi по районам, типам транспорта и расстоянию до остановки</p>
+                </a>
+                <a href="/stats" class="feature-card">
+                    <h3>Статистика</h3>
+                    <p>Количество точек по округам и районам, распределение по расстоянию до транспорта</p>
+                </a>
+                <a href="/map" class="feature-card">
+                    <h3>Карта</h3>
+                    <p>Точки на карте с группировкой и цветом по расчётной нагрузке</p>
+                </a>
+                <a href="/reports" class="feature-card">
+                    <h3>Отчёты</h3>
+                    <p>Excel-отчёты по точке, району или Москве целиком</p>
+                </a>
+            </div>
+        </div>
+    </section>
+</main>
+</body>
+</html>

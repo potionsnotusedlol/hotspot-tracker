@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/base :: layout('Ошибка', ~{::main})}">
+<body>
+<main id="main" class="main-content" tabindex="-1">
+    <div class="container page-narrow">
+        <h1 th:text="${status == 404} ? 'Страница не найдена' : 'Что-то пошло не так'">Ошибка</h1>
+        <p>Вернуться на <a href="/">главную</a> или в <a href="/catalog">каталог</a>.</p>
+    </div>
+</main>
+</body>
+</html>

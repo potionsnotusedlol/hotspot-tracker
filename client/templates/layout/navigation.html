@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<body>
+<nav class="navigation" th:fragment="navigation" aria-label="Основное меню">
+    <div class="container navigation-list">
+        <a href="/" class="nav-link"
+           th:attr="aria-current=${currentPath == '/' ? 'page' : null}">Главная</a>
+        <a href="/catalog" class="nav-link"
+           th:attr="aria-current=${#strings.startsWith(currentPath, '/catalog') or #strings.startsWith(currentPath, '/access-points') ? 'page' : null}">Каталог</a>
+        <a href="/map" class="nav-link"
+           th:attr="aria-current=${currentPath == '/map' ? 'page' : null}">Карта</a>
+        <a href="/stats" class="nav-link"
+           th:attr="aria-current=${currentPath == '/stats' ? 'page' : null}">Статистика</a>
+        <a href="/reports" class="nav-link" sec:authorize="isAuthenticated()"
+           th:attr="aria-current=${currentPath == '/reports' ? 'page' : null}">Отчёты</a>
+        <a href="/profile" class="nav-link" sec:authorize="isAuthenticated()"
+           th:attr="aria-current=${currentPath == '/profile' ? 'page' : null}">Профиль</a>
+        <a href="/admin" class="nav-link" sec:authorize="hasRole('ADMIN')"
+           th:attr="aria-current=${#strings.startsWith(currentPath, '/admin') ? 'page' : null}">Админ</a>
+    </div>
+</nav>
+</body>
+</html>

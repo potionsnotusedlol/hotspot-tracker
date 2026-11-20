@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:fragment="district-field" id="district-field" class="filter-field">
+    <label for="f-district">Район</label>
+    <select id="f-district" name="district">
+        <option value="">Все районы</option>
+        <option th:each="d : ${districts}"
+                th:value="${d.district()}"
+                th:text="${d.district()} + ' (' + ${d.count()} + ')'"
+                th:selected="${d.district() == selectedDistrict}"></option>
+    </select>
+</div>
+</body>
+</html>

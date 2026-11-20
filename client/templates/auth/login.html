@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/base :: layout('Вход', ~{::main})}">
+<body>
+<main id="main" class="main-content" tabindex="-1">
+    <div class="container page-narrow">
+        <h1>Вход</h1>
+
+        <div th:if="${param.error != null}" class="alert alert-error" role="alert">
+            Неверный email или пароль.
+        </div>
+        <div th:if="${param.logout != null}" class="alert alert-success" role="status">Вы вышли из системы.</div>
+
+        <form th:action="@{/login}" method="post">
+            <div class="form-group">
+                <label for="login-email">Email</label>
+                <input id="login-email" type="email" name="username" autocomplete="username" required>
+            </div>
+            <div class="form-group">
+                <label for="login-password">Пароль</label>
+                <input id="login-password" type="password" name="password" autocomplete="current-password" required>
+            </div>
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Войти</button>
+                <a href="/register">Регистрация</a>
+            </div>
+        </form>
+    </div>
+</main>
+</body>
+</html>

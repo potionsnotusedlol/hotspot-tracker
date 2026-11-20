@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:fragment="layout (pageTitle, pageContent)">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- CSRF-токен для HTMX-запросов, его читает app.js -->
+    <meta th:if="${_csrf != null}" name="_csrf" th:content="${_csrf.token}">
+    <meta th:if="${_csrf != null}" name="_csrf_header" th:content="${_csrf.headerName}">
+
+    <title th:text="${pageTitle} + ' · Wi-Fi Москвы'">Wi-Fi Москвы</title>
+
+    <link rel="stylesheet" th:href="@{/css/variables.css}">
+    <link rel="stylesheet" th:href="@{/css/main.css}">
+    <link rel="stylesheet" th:href="@{/css/responsive.css}">
+    <link rel="stylesheet" th:href="@{/css/components.css}">
+
+    <!-- Leaflet и кластеризация маркеров (webjars, без внешних CDN) -->
+    <link rel="stylesheet" th:href="@{/webjars/leaflet/1.9.4/leaflet.css}">
+    <link rel="stylesheet" th:href="@{/webjars/leaflet.markercluster/1.5.3/dist/MarkerCluster.css}">
+    <link rel="stylesheet" th:href="@{/webjars/leaflet.markercluster/1.5.3/dist/MarkerCluster.Default.css}">
+</head>
+<body>
+    <a href="#main" class="skip-link">Перейти к содержимому</a>
+
+    <div th:replace="~{layout/header :: header}"></div>
+    <div th:replace="~{layout/navigation :: navigation}"></div>
+
+    <div th:if="${placeholders}" class="container">
+        <p class="alert alert-warning" role="note">
+            Часть данных демонстрационная: модули, которые её поставляют, ещё не подключены.
+        </p>
+    </div>
+
+    <main th:replace="${pageContent}"></main>
+
+    <div th:replace="~{layout/footer :: footer}"></div>
+
+    <!-- Виджет чат-бота только для вошедших пользователей (FR-WEB-05) -->
+    <th:block sec:authorize="isAuthenticated()">
+        <div th:replace="~{layout/chat-widget :: widget}"></div>
+    </th:block>
+
+    <!-- Библиотеки: htmx, Chart.js, Leaflet -->
+    <script th:src="@{/webjars/htmx.org/1.9.10/dist/htmx.min.js}"></script>
+    <script th:src="@{/webjars/chart.js/4.4.1/dist/chart.umd.js}"></script>
+    <script th:src="@{/webjars/leaflet/1.9.4/leaflet.js}"></script>
+    <script th:src="@{/webjars/leaflet.markercluster/1.5.3/dist/leaflet.markercluster.js}"></script>
+
+    <!-- Наш код -->
+    <script th:src="@{/js/app.js}"></script>
+    <script th:src="@{/js/charts.js}"></script>
+    <script th:src="@{/js/map.js}"></script>
+</body>
+</html>

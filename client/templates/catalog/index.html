@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/base :: layout('Каталог точек', ~{::main})}">
+<body>
+<main id="main" class="main-content" tabindex="-1">
+    <div class="container">
+        <h1>Каталог точек доступа</h1>
+
+        <!-- Фильтры: изменение любого поля обновляет таблицу без перезагрузки страницы -->
+        <form id="catalog-filters" class="filters" th:action="@{/catalog}" method="get"
+              hx-get="/catalog/rows" hx-target="#catalog-results" hx-swap="innerHTML"
+              hx-trigger="change, keyup changed delay:400ms">
+
+            <div class="filter-field">
+                <label for="f-q">Название или адрес</label>
+                <input id="f-q" type="search" name="q" th:value="${query.q()}">
+            </div>
+
+            <div class="filter-field">
+                <label for="f-okrug">Округ</label>
+                <select id="f-okrug" name="okrug"
+                        hx-get="/catalog/districts" hx-target="#district-field" hx-swap="outerHTML"
+                        hx-trigger="change">
+                    <option value="">Все округа</option>
+                    <option th:each="o : ${okrugs}"
+                            th:value="${o.okrug()}"
+                            th:text="${o.okrug()} + ' (' + ${o.count()} + ')'"
+                            th:selected="${o.okrug() == query.okrug()}"></option>
+                </select>
+            </div>
+
+            <th:block th:replace="~{catalog/filters :: district-field}"></th:block>
+
+            <div class="filter-field">
+                <label for="f-transport">Ближайший транспорт</label>
+                <select id="f-transport" name="transportType">
+                    <option value="">Любой</option>
+                    <option th:each="t : ${transportTypes}"
+                            th:value="${t}" th:text="${t.label()}"
+                            th:selected="${t == query.transportType()}"></option>
+                </select>
+            </div>
+
+            <fieldset class="filter-field filter-range">
+                <legend>Расстояние до остановки, м</legend>
+                <label for="f-dist-from" class="visually-hidden">От, метров</label>
+                <input id="f-dist-from" type="number" min="0" name="distanceFrom"
+                       th:value="${query.distanceFrom()}" placeholder="от">
+                <label for="f-dist-to" class="visually-hidden">До, метров</label>
+                <input id="f-dist-to" type="number" min="0" name="distanceTo"
+                       th:value="${query.distanceTo()}" placeholder="до">
+            </fieldset>
+
+            <fieldset class="filter-field filter-range">
+                <legend>Нагрузка, чел. (оценка)</legend>
+                <label for="f-load-from" class="visually-hidden">От, человек</label>
+                <input id="f-load-from" type="number" min="0" name="loadFrom"
+                       th:value="${query.loadFrom()}" placeholder="от">
+                <label for="f-load-to" class="visually-hidden">До, человек</label>
+                <input id="f-load-to" type="number" min="0" name="loadTo"
+                       th:value="${query.loadTo()}" placeholder="до">
+            </fieldset>
+
+            <div class="filter-field">
+                <label for="f-sort">Сортировка</label>
+                <select id="f-sort" name="sort">
+                    <option value="name,asc" th:selected="${query.sort() == 'name,asc' or query.sort() == null}">Название, А–Я</option>
+                    <option value="name,desc" th:selected="${query.sort() == 'name,desc'}">Название, Я–А</option>
+                    <option value="distanceToStopM,asc" th:selected="${query.sort() == 'distanceToStopM,asc'}">Ближе к остановке</option>
+                    <option value="estimatedLoad,desc" th:selected="${query.sort() == 'estimatedLoad,desc'}">Выше нагрузка</option>
+                </select>
+            </div>
+
+            <div class="filter-field">
+                <label for="f-size">На странице</label>
+                <select id="f-size" name="size">
+                    <option th:each="s : ${pageSizes}" th:value="${s}" th:text="${s}"
+                            th:selected="${s == (query.size() ?: 20)}"></option>
+                </select>
+            </div>
+
+            <div class="filter-actions">
+                <button type="submit" class="btn btn-primary">Применить</button>
+            </div>
+        </form>
+
+        <section id="catalog-results" class="results" aria-live="polite">
+            <th:block th:replace="~{catalog/rows :: rows}"></th:block>
+        </section>
+    </div>
+</main>
+</body>
+</html>

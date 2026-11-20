@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/base :: layout('Админ-панель', ~{::main})}">
+<body>
+<main id="main" class="main-content" tabindex="-1">
+    <div class="container">
+        <h1>Админ-панель</h1>
+
+        <div th:if="${message != null}" class="alert alert-success" role="status" th:text="${message}">Готово</div>
+        <div th:if="${error != null}" class="alert alert-error" role="alert" th:text="${error}">Ошибка</div>
+
+        <section aria-labelledby="users-title">
+            <h2 id="users-title" class="section-title">Пользователи и роли</h2>
+            <p th:if="${users.empty}" class="empty-state">Пользователей пока нет.</p>
+            <div th:unless="${users.empty}" class="table-wrap">
+                <table>
+                    <thead><tr><th scope="col">Email</th><th scope="col">Роль</th><th scope="col">Изменить</th></tr></thead>
+                    <tbody>
+                    <tr th:each="u : ${users}">
+                        <td th:text="${u.email()}">user@example.com</td>
+                        <td th:text="${u.role()}">USER</td>
+                        <td>
+                            <form class="inline-form" th:action="@{/admin/users/{id}/role(id=${u.id()})}" method="post">
+                                <label class="visually-hidden" th:for="'role-' + ${u.id()}">Новая роль</label>
+                                <select th:id="'role-' + ${u.id()}" name="role">
+                                    <option th:each="r : ${roles}" th:value="${r}" th:text="${r}"
+                                            th:selected="${r == u.role()}"></option>
+                                </select>
+                                <button type="submit" class="btn btn-outline">Сохранить</button>
+                            </form>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section aria-labelledby="params-title">
+            <h2 id="params-title" class="section-title">Параметры модели нагрузки</h2>
+            <p class="note">Меняются без пересборки. Каждое изменение пишется в журнал аудита.</p>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                    <tr>
+                        <th scope="col">Параметр</th>
+                        <th scope="col">Значение</th>
+                        <th scope="col">Версия</th>
+                        <th scope="col">Кто и когда</th>
+                        <th scope="col">Изменить</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="p : ${params}">
+                        <td th:text="${p.key()}">key</td>
+                        <td th:text="${p.value()}">value</td>
+                        <td th:text="${p.version()}">1</td>
+                        <td th:text="${p.changedBy() + ', ' + p.changedAt()}">system</td>
+                        <td>
+                            <form class="inline-form" th:action="@{/admin/model-params}" method="post">
+                                <input type="hidden" name="key" th:value="${p.key()}">
+                                <label class="visually-hidden" th:for="'value-' + ${p.key()}">Новое значение</label>
+                                <input th:id="'value-' + ${p.key()}" type="text" name="value" maxlength="100" required>
+                                <button type="submit" class="btn btn-outline">Сохранить</button>
+                            </form>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section aria-labelledby="usage-title">
+            <h2 id="usage-title" class="section-title">Использование за <span th:text="${usageDays}">30</span> дней</h2>
+            <dl class="facts">
+                <dt>Пользователей</dt><dd th:text="${usage.users()}">0</dd>
+                <dt>Запросов в веб-интерфейсе</dt><dd th:text="${usage.webRequests()}">0</dd>
+                <dt>Запросов к API</dt><dd th:text="${usage.apiRequests()}">0</dd>
+                <dt>Обращений к боту</dt><dd th:text="${usage.botRequests()}">0</dd>
+                <dt>Обращений к чат-боту</dt><dd th:text="${usage.chatRequests()}">0</dd>
+                <dt>Ошибок</dt><dd th:text="${usage.errors()}">0</dd>
+            </dl>
+            <p class="note"><a href="/reports">Полный отчёт об использовании в Excel</a> можно заказать на странице отчётов.</p>
+        </section>
+
+        <section aria-labelledby="imports-title">
+            <h2 id="imports-title" class="section-title">Журнал импорта</h2>
+            <p th:if="${imports.empty}" class="empty-state">Импорт ещё не запускался.</p>
+            <div th:unless="${imports.empty}" class="table-wrap">
+                <table>
+                    <thead><tr><th scope="col">Набор</th><th scope="col">Статус</th><th scope="col">Принято</th><th scope="col">Отклонено</th><th scope="col">Автор</th></tr></thead>
+                    <tbody>
+                    <tr th:each="j : ${imports}">
+                        <td th:text="${j.dataset()}">набор</td>
+                        <td th:text="${j.status()}">статус</td>
+                        <td th:text="${j.accepted()}">0</td>
+                        <td th:text="${j.rejected()}">0</td>
+                        <td th:text="${j.author()}">автор</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section aria-labelledby="audit-title">
+            <h2 id="audit-title" class="section-title">Журнал аудита</h2>
+            <p th:if="${audit.empty}" class="empty-state">Записей пока нет.</p>
+            <div th:unless="${audit.empty}" class="table-wrap">
+                <table>
+                    <thead><tr><th scope="col">Когда</th><th scope="col">Кто</th><th scope="col">Действие</th><th scope="col">Объект</th></tr></thead>
+                    <tbody>
+                    <tr th:each="a : ${audit}">
+                        <td th:text="${a.at()}">01.01.2026 10:00</td>
+                        <td th:text="${a.actor()}">user</td>
+                        <td th:text="${a.action()}">действие</td>
+                        <td th:text="${a.target()}">объект</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+</main>
+</body>
+</html>
