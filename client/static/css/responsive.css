@@ -1,0 +1,55 @@
+/* Мобильные (< 640px) */
+@media (max-width: 639px) {
+    /* ↑ Этот код применяется ТОЛЬКО на мобильных телефонах */
+    
+    .container {
+        padding: 0 var(--spacing-md);
+        /* ↑ Меньше отступов на мобильных */
+    }
+    
+    .hero h1 {
+        font-size: var(--font-size-xl);
+        /* ↑ Заголовок меньше на телефоне */
+    }
+    
+    .features-grid {
+        grid-template-columns: 1fr;
+        /* ↑ На мобильных только один столбец */
+    }
+    
+    .hero-buttons {
+        flex-direction: column;
+        /* ↑ Кнопки друг под другом */
+    }
+    
+    .btn {
+        width: 100%;
+        /* ↑ Кнопка на всю ширину */
+    }
+    
+    table {
+        font-size: var(--font-size-sm);
+        /* ↑ Шрифт мельче */
+    }
+    
+    th, td {
+        padding: var(--spacing-sm);
+        /* ↑ Меньше внутренних отступов */
+    }
+}
+
+/* Планшеты (640px - 1024px) */
+@media (min-width: 640px) and (max-width: 1024px) {
+    .features-grid {
+        grid-template-columns: repeat(2, 1fr);
+        /* ↑ На планшетах два столбца */
+    }
+}
+
+/* Большие экраны (> 1024px) */
+@media (min-width: 1025px) {
+    .container {
+        padding: 0 var(--spacing-2xl);
+        /* ↑ Больше отступов на больших экранах */
+    }
+}
