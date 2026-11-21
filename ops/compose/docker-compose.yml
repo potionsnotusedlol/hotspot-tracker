@@ -7,7 +7,7 @@ services:
   postgres:
     # PostgreSQL 18 + PostGIS 3.6. The tag does not include the PostgreSQL patch version,
     # so the digest pins the exact image.
-    image: postgis/postgis:18-3.6@sha256:60f6ad1d21ea86a67d47780b9a0d1e1d200500f62b19293fa834d0dea80b8677
+    image: postgis/postgis:18-3.7@sha256:fe440a27c6567aefa932e988962e5827bb2c29e4b97dac2ca5268f5eafe10262
     restart: unless-stopped
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-hotspot}
@@ -34,7 +34,7 @@ services:
       start_period: 30s
 
   redis:
-    image: redis:8.10.2-alpine
+    image: redis:8.10.3-alpine
     restart: unless-stopped
     ports:
       - "127.0.0.1:${REDIS_PORT:-6379}:6379"
