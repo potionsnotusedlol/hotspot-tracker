@@ -14,7 +14,7 @@ import ru.moscow.hotspot_tracker.main.web.port.UserAccountService;
  * здесь только страницы и регистрация.
  */
 @Controller
-class AuthController {
+class WebAuthController {
 
     private static final Pattern EMAIL = Pattern.compile("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$");
     private static final int MIN_PASSWORD = 8;
@@ -23,7 +23,7 @@ class AuthController {
 
     private final UserAccountService accounts;
 
-    AuthController(UserAccountService accounts) {
+    WebAuthController(UserAccountService accounts) {
         this.accounts = accounts;
     }
 

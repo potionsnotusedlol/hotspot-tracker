@@ -2,10 +2,9 @@ package ru.moscow.hotspot_tracker.main.web;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
 /**
@@ -32,9 +31,15 @@ class SecurityConfig {
             "form-action 'self'",
             "frame-ancestors 'none'");
 
+    /**
+     * Веб-цепочка. Пути /api/** обслуживает отдельная API-цепочка, она идёт первой.
+     * Хэширование паролей задаёт модуль безопасности, здесь отдельного PasswordEncoder нет.
+     */
     @Bean
+    @Order(2)
     SecurityFilterChain webSecurity(HttpSecurity http) throws Exception {
-        http.authorizeHttpRequests(auth -> auth
+        http.securityMatcher(request -> !request.getRequestURI().startsWith("/api/"))
+                .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/", "/catalog", "/catalog/rows", "/catalog/districts", "/access-points/**",
                                 "/map", "/map/points", "/stats", "/stats/**", "/login", "/register",
                                 "/css/**", "/js/**", "/webjars/**", "/error")
@@ -54,8 +59,4 @@ class SecurityConfig {
         return http.build();
     }
 
-    @Bean
-    PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
 }
