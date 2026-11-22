@@ -110,6 +110,6 @@ document.addEventListener('DOMContentLoaded', function() {
     initMaps();
 });
 
-document.body.addEventListener('htmx:afterSettle', function(event) {
+document.body.addEventListener('htmx:after:settle', function(event) {
     initMaps(event.target);
 });

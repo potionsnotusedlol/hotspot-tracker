@@ -13,9 +13,16 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 class SharedModelAdvice {
 
     private final boolean placeholders;
+    private final WebjarAssets assets;
 
-    SharedModelAdvice(@Value("${hotspot.web.placeholders:true}") boolean placeholders) {
+    SharedModelAdvice(@Value("${hotspot.web.placeholders:true}") boolean placeholders, WebjarAssets assets) {
         this.placeholders = placeholders;
+        this.assets = assets;
+    }
+
+    @ModelAttribute("assets")
+    WebjarAssets assets() {
+        return assets;
     }
 
     @ModelAttribute("placeholders")

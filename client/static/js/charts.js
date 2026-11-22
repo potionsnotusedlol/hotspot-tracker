@@ -107,7 +107,7 @@ document.addEventListener('DOMContentLoaded', function() {
     initCharts();
 });
 
-document.body.addEventListener('htmx:afterSettle', function(event) {
+document.body.addEventListener('htmx:after:settle', function(event) {
     initCharts(event.target);
     // ↑ После замены фрагмента htmx рисуем графики, которые в нём появились
 });

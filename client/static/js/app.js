@@ -6,18 +6,12 @@ document.addEventListener('DOMContentLoaded', function() {
     // ↑ Вывод в консоль браузера (F12 → Console)
     
     // HTMX конфигурация
-    htmx.config.defaultIndicatorStyle = 'spinner';
-    // ↑ Показывать крутящейся кружочек при загрузке
-    
-    htmx.config.defaultSwapStyle = 'innerHTML';
-    // ↑ Заменять внутреннее содержимое (не весь элемент)
-
-    htmx.config.includeIndicatorStyles = false;
+    htmx.config.includeIndicatorCSS = false;
     // ↑ htmx по умолчанию вставляет свой <style>, CSP его запрещает.
-    //   Стили индикатора лежат в components.css
+    //   Стили индикатора лежат в components.css. Замена по умолчанию (innerHTML) уже задана в htmx
 
     // Слушаем HTMX события
-    document.body.addEventListener('htmx:configRequest', function(event) {
+    document.body.addEventListener('htmx:config:request', function(event) {
         // ↑ Перед каждым запросом HTMX
         
         // Добавляем CSRF токен если есть
@@ -26,15 +20,17 @@ document.addEventListener('DOMContentLoaded', function() {
         // ↑ CSRF = защита от подделки запросов
         
         if (token && header) {
-            event.detail.headers[header] = token;
+            event.detail.ctx.request.headers[header] = token;
             // ↑ Добавляем токен в заголовок запроса
         }
     });
 
     // Очищаем поле чата после успешной отправки
-    document.body.addEventListener('htmx:afterRequest', function(event) {
-        const form = event.detail.elt;
-        if (form && form.classList.contains('chat-form') && event.detail.successful) {
+    document.body.addEventListener('htmx:after:request', function(event) {
+        const form = event.target;
+        // ↑ htmx 4 шлёт событие на элемент, который запустил запрос
+        const response = event.detail.ctx.response;
+        if (form.classList.contains('chat-form') && response && response.status < 400) {
             form.reset();
             // ↑ hx-on для этого CSP не разрешает, поэтому делаем здесь
         }
