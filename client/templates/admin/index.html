@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <html lang="ru" xmlns:th="http://www.thymeleaf.org"
       th:replace="~{layout/base :: layout('Админ-панель', ~{::main})}">
+<head>
+    <title>Админ-панель</title>
+</head>
 <body>
 <main id="main" class="main-content" tabindex="-1">
     <div class="container">
@@ -21,8 +24,7 @@
                         <td th:text="${u.role()}">USER</td>
                         <td>
                             <form class="inline-form" th:action="@{/admin/users/{id}/role(id=${u.id()})}" method="post">
-                                <label class="visually-hidden" th:for="'role-' + ${u.id()}">Новая роль</label>
-                                <select th:id="'role-' + ${u.id()}" name="role">
+                                <select name="role" aria-label="Новая роль">
                                     <option th:each="r : ${roles}" th:value="${r}" th:text="${r}"
                                             th:selected="${r == u.role()}"></option>
                                 </select>
@@ -58,8 +60,7 @@
                         <td>
                             <form class="inline-form" th:action="@{/admin/model-params}" method="post">
                                 <input type="hidden" name="key" th:value="${p.key()}">
-                                <label class="visually-hidden" th:for="'value-' + ${p.key()}">Новое значение</label>
-                                <input th:id="'value-' + ${p.key()}" type="text" name="value" maxlength="100" required>
+                                <input type="text" name="value" maxlength="100" required aria-label="Новое значение">
                                 <button type="submit" class="btn btn-outline">Сохранить</button>
                             </form>
                         </td>
