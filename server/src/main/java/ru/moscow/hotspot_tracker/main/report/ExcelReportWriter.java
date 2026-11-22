@@ -56,8 +56,9 @@ class ExcelReportWriter {
 
     void write(ReportType type, ReportParams params, Path target) throws IOException {
         Files.createDirectories(target.getParent());
-        SXSSFWorkbook workbook = new SXSSFWorkbook(WINDOW);
-        try (OutputStream out = Files.newOutputStream(target)) {
+        // close() удаляет временные файлы SXSSF, поэтому книга закрывается через try-with-resources
+        try (SXSSFWorkbook workbook = new SXSSFWorkbook(WINDOW);
+             OutputStream out = Files.newOutputStream(target)) {
             CellStyle header = headerStyle(workbook);
             switch (type) {
                 case ACCESS_POINT -> accessPointSheets(workbook, header, params);
@@ -66,9 +67,6 @@ class ExcelReportWriter {
                 case USAGE -> usageSheet(workbook, header, params);
             }
             workbook.write(out);
-        } finally {
-            // Временные файлы SXSSF иначе останутся на диске
-            workbook.dispose();
         }
     }
 
