@@ -3,7 +3,6 @@ package ru.moscow.hotspot_tracker.main.report;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.time.Duration;
 import java.time.Instant;
 import java.util.UUID;
 import org.slf4j.Logger;
@@ -18,9 +17,6 @@ import org.springframework.stereotype.Component;
  */
 @Component
 class ReportWorker {
-
-    /** Готовые файлы хранятся 7 суток (FR-REP-07). */
-    private static final Duration RETENTION = Duration.ofDays(7);
 
     private static final Logger log = LoggerFactory.getLogger(ReportWorker.class);
 
@@ -44,8 +40,7 @@ class ReportWorker {
         Path target = storageDir.resolve(jobId + ".xlsx");
         try {
             writer.write(job.getReportType(), ReportParams.fromQuery(job.getParameters()), target);
-            Instant now = Instant.now();
-            job.markDone(target.toString(), now, now.plus(RETENTION));
+            job.markDone(target.toString(), Instant.now());
         } catch (IllegalArgumentException e) {
             // Текст этой ошибки написан для пользователя, его можно показать
             deleteQuietly(target);

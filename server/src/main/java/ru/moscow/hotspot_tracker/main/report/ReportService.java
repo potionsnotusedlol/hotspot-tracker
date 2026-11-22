@@ -9,6 +9,9 @@ import java.util.NoSuchElementException;
 import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.EventListener;
+import org.springframework.core.task.TaskRejectedException;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
@@ -38,8 +41,35 @@ public class ReportService {
         }
         params.validate(type);
         ReportJob job = jobs.save(new ReportJob(UUID.randomUUID(), type, params.toQuery(), owner, Instant.now()));
-        worker.generate(job.getId());
+        enqueue(job);
         return job;
+    }
+
+    /**
+     * Ставит задачу в пул генерации. Если очередь полна, задача сразу получает статус FAILED,
+     * а не остаётся в PENDING: иначе страница будет опрашивать её вечно.
+     */
+    private void enqueue(ReportJob job) {
+        try {
+            worker.generate(job.getId());
+        } catch (TaskRejectedException e) {
+            log.warn("Очередь отчётов заполнена, задача {} отклонена", job.getId());
+            job.markFailed("Очередь отчётов заполнена, попробуйте через несколько минут", Instant.now());
+            jobs.save(job);
+        }
+    }
+
+    /**
+     * После перезапуска задачи в PENDING и RUNNING снова ставим в очередь.
+     * Без этого они остались бы незавершёнными навсегда.
+     */
+    @EventListener(ApplicationReadyEvent.class)
+    void requeueUnfinished() {
+        for (ReportJob job : jobs.findByStatusIn(List.of(ReportStatus.PENDING, ReportStatus.RUNNING))) {
+            job.markPending();
+            jobs.save(job);
+            enqueue(job);
+        }
     }
 
     public List<ReportJob> listFor(String owner) {
