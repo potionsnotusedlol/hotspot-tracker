@@ -28,3 +28,7 @@ ops/testdata/**                 -text
 *.png        binary
 *.jpg        binary
 *.ico        binary
+
+# Read inside Linux containers: always LF
+Dockerfile    text eol=lf
+.dockerignore text eol=lf

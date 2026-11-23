@@ -75,7 +75,7 @@ The roles and the `postgis` and `pg_trgm` extensions are created by `compose/ini
 
 ### API mock server
 
-Prism serves the example responses from `docs/openapi.yaml`, so clients can be built before the backend is ready. It needs the same `.env` file and a non-empty `docs/openapi.yaml`. It only starts with the `mock` profile:
+Prism serves the example responses from `docs/openapi.yaml`, so clients can be built before the backend is ready. It needs the same `.env` file and a non-empty `docs/openapi.yaml`. It only starts with the `mock` profile. The image is built locally from `compose/mock/Dockerfile` on the first start (this needs access to the npm registry), so it runs natively on amd64 and arm64 (Apple Silicon):
 
 ```sh
 docker compose -f ops/compose/docker-compose.yml --profile mock up -d mock
@@ -85,20 +85,58 @@ docker compose -f ops/compose/docker-compose.yml --profile mock rm -sf mock
 
 - Android emulator: use `http://10.0.2.2:4010`.
 - After changing `docs/openapi.yaml`, recreate the container (`up -d --force-recreate mock`).
+- After changing `compose/mock/Dockerfile`, rebuild the image (`up -d --build mock`).
 - Answers are static examples: there is no real data, login or permission check. Use the backend for anything that depends on them.
 - Contract problems found while serving a response are printed in the log: `docker compose -f ops/compose/docker-compose.yml --profile mock logs mock`.
+
+### API server
+
+The `app` profile builds the server image from `server/Dockerfile` and starts it next to PostgreSQL and Redis. The image uses Eclipse Temurin 25 (JRE only, layered jar), runs as a non-root user and has a healthcheck on `/actuator/health`. It needs the same `.env` file.
+
+```sh
+docker compose -f ops/compose/docker-compose.yml --profile app up -d --build app
+docker compose -f ops/compose/docker-compose.yml --profile app ps    # app must be "healthy"
+curl http://localhost:8080/actuator/health
+```
+
+- The application connects as `DB_APP_USER` (no DDL); Flyway migrations run as `DB_MIGRATION_USER`.
+- After code changes run `up -d --build app` again. The first build downloads Gradle and the dependencies and takes a few minutes; later builds reuse the Docker cache.
+- The host port is `APP_PORT` (default 8080).
+- If the build cannot download Gradle on a network without IPv6, pass `--build-arg GRADLE_OPTS=-Djava.net.preferIPv4Stack=true` to `docker build` (or set it under `build.args` in the compose file for a local run).
+- On `master` the image is published to GitHub Container Registry as `ghcr.io/potionsnotusedlol/hotspot-tracker/server`, tagged `sha-<commit>` and `master`.
+
+### Monitoring
+
+The `monitoring` profile starts Prometheus, Grafana and the PostgreSQL and Redis exporters. It needs the same `.env` file.
+
+```sh
+docker compose -f ops/compose/docker-compose.yml --profile monitoring up -d
+```
+
+| Service | Address | Notes |
+|---|---|---|
+| Grafana | `http://localhost:3000` | login `GRAFANA_ADMIN_USER` / `GRAFANA_ADMIN_PASSWORD` from `.env` (default `admin` / `admin`) |
+| Prometheus | `http://localhost:9090` | `Status > Targets` shows what is scraped |
+
+- The dashboard **Hotspot / Infrastructure overview** is provisioned from `ops/grafana/dashboards`. It shows the targets, the JVM and HikariCP of the server, PostgreSQL and Redis. Add or change dashboards as JSON files there, not in the Grafana interface: provisioned dashboards are read-only.
+- Prometheus is configured in `ops/prometheus/prometheus.yml` and keeps the data for 7 days.
+- The server is scraped at `app:8080/actuator/prometheus` when it runs with the `app` profile. For now the target `app` is down and the JVM and HikariCP panels are empty: the server has no Prometheus registry yet, and Spring Security answers 401 on the endpoint. The server needs `micrometer-registry-prometheus`, the `prometheus` endpoint exposed, and access for the scraper without a user login (for example a management port that is not published). The rest of the dashboard works without it.
+- The exporters connect to PostgreSQL as the application role.
+- Ports are bound to `127.0.0.1`; change `GRAFANA_PORT` and `PROMETHEUS_PORT` in `.env` if they are taken.
 
 ### Stop and reset
 
 ```sh
-docker compose -f ops/compose/docker-compose.yml down      # stop, keep data
-docker compose -f ops/compose/docker-compose.yml down -v   # stop and delete all data
+docker compose -f ops/compose/docker-compose.yml --profile '*' down      # stop, keep data
+docker compose -f ops/compose/docker-compose.yml --profile '*' down -v   # stop and delete all data
 ```
+
+`down` only touches the services of the profiles it is given. A plain `down` stops PostgreSQL and Redis but leaves the services started with a profile (`app`, `monitoring`, `mock`) running, and the network stays in use. `--profile '*'` selects all of them. To stop only one group, name its profile: `--profile monitoring down`.
 
 The init script runs only on the first start with an empty data volume. After changing it, or the roles and passwords in `.env`, recreate the database with `down -v`.
 
 ### Troubleshooting
 
 - **`address already in use` / a service stays in `Created`:** the host port is taken (often by a locally installed PostgreSQL or Redis). Change `POSTGRES_PORT`, `REDIS_PORT` or `MOCK_PORT` in `.env` and run `up -d` again.
-- **Mac with Apple Silicon:** the PostGIS and Prism images are published for amd64 only, so they run under emulation (Docker Desktop prints a platform warning). They work, just slower; keep "Use Rosetta for x86_64/amd64 emulation" enabled in Docker Desktop settings.
+- **Mac with Apple Silicon:** the PostGIS image is published for amd64 only, so compose starts PostgreSQL with `platform: linux/x86_64` and Docker Desktop runs it under emulation. It works, just slower; keep "Use Rosetta for x86_64/amd64 emulation" enabled in Docker Desktop settings. The mock server and the server image are built for the host platform and need no emulation.
 - **Image pull fails or hangs:** Docker Hub may be slow or unreachable from some networks. Configure a registry mirror in the Docker daemon settings (`registry-mirrors` in `/etc/docker/daemon.json` or in Docker Desktop settings) and retry.

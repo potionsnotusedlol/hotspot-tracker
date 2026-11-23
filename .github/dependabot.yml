@@ -57,3 +57,18 @@ updates:
     groups:
       server-images:
         patterns: ["*"]
+
+  # Base image of the mock server (ops/compose/mock/Dockerfile), pinned by version and digest.
+  # The Prism CLI version inside it is updated by hand.
+  - package-ecosystem: docker
+    directory: /ops/compose/mock
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: "build"
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-minor"]
+    groups:
+      mock-image:
+        patterns: ["*"]
