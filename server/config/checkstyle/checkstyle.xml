@@ -6,13 +6,13 @@
     <property name="severity" value="error"/>
     <property name="fileExtensions" value="java"/>
 
-    <!-- Repository rule: code and comments are in English. Use unicode escapes for non-English test data. -->
-    <module name="RegexpSingleline">
-        <property name="format" value="\p{IsCyrillic}"/>
-        <property name="message" value="Only English is allowed in the repository."/>
-    </module>
-
     <module name="TreeWalker">
+        <!-- Repository rule: comments and Javadoc are in English. Cyrillic is allowed in code, e.g. UI texts and test data. -->
+        <module name="TodoComment">
+            <property name="format" value="\p{IsCyrillic}"/>
+            <message key="todo.match" value="Only English is allowed in comments and Javadoc."/>
+        </module>
+
         <module name="AvoidStarImport"/>
         <module name="RedundantImport"/>
         <module name="UnusedImports"/>
