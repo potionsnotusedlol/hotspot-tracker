@@ -8,7 +8,7 @@ services:
   postgres:
     # PostgreSQL 18 + PostGIS 3.6. The tag does not include the PostgreSQL patch version,
     # so the digest pins the exact image.
-    image: postgis/postgis:18-3.6@sha256:60f6ad1d21ea86a67d47780b9a0d1e1d200500f62b19293fa834d0dea80b8677
+    image: postgis/postgis:18-3.6@sha256:4a43e3c3e5d55b9208240fc71db543b79c638766280c625a425bd0a2390989c4
     # PostGIS is published for linux/amd64 only; on Apple Silicon Docker Desktop runs it under Rosetta
     platform: linux/x86_64
     restart: unless-stopped
@@ -37,7 +37,7 @@ services:
       start_period: 30s
 
   redis:
-    image: redis:8.10.2-alpine
+    image: redis:8.10.3-alpine
     restart: unless-stopped
     ports:
       - "127.0.0.1:${REDIS_PORT:-6379}:6379"
