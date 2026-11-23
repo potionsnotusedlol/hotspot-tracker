@@ -177,5 +177,7 @@ sonar {
     properties {
         property("sonar.projectKey", "potionsnotusedlol_hotspot-tracker")
         property("sonar.organization", "potionsnotusedlol")
+        // The entry point only starts Spring; tests cover the context, not main()
+        property("sonar.coverage.exclusions", "**/MainApplication.java")
     }
 }
