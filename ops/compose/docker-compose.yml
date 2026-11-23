@@ -9,6 +9,8 @@ services:
     # PostgreSQL 18 + PostGIS 3.6. The tag does not include the PostgreSQL patch version,
     # so the digest pins the exact image.
     image: postgis/postgis:18-3.6@sha256:60f6ad1d21ea86a67d47780b9a0d1e1d200500f62b19293fa834d0dea80b8677
+    # PostGIS is published for linux/amd64 only; on Apple Silicon Docker Desktop runs it under Rosetta
+    platform: linux/x86_64
     restart: unless-stopped
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-hotspot}
@@ -144,9 +146,10 @@ services:
   # Serves example responses from docs/openapi.yaml, so clients can be built before the backend.
   mock:
     profiles: [mock]
-    image: stoplight/prism:5.15.10
+    # Built locally from npm: the official Prism image exists for amd64 only (see mock/Dockerfile)
+    build: ./mock
     restart: unless-stopped
-    # Prism 5.15.10 crashes on startup with its default multiprocess mode
+    # Prism crashes on startup with its default multiprocess mode (seen on 5.15.10)
     command: ["mock", "--host", "0.0.0.0", "--multiprocess", "false", "/spec/openapi.yaml"]
     ports:
       - "127.0.0.1:${MOCK_PORT:-4010}:4010"

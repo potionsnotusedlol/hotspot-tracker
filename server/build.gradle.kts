@@ -2,6 +2,7 @@ plugins {
 	java
 	id("org.springframework.boot") version "4.1.2"
 	id("io.spring.dependency-management") version "1.1.7"
+    id("org.sonarqube") version "7.6.0.18749"
 }
 
 group = "ru.moscow.hotspot-tracker"
@@ -67,4 +68,11 @@ dependencyManagement {
 
 tasks.withType<Test> {
 	useJUnitPlatform()
+}
+
+sonar {
+    properties {
+        property("sonar.projectKey", "potionsnotusedlol_hotspot-tracker")
+        property("sonar.organization", "potionsnotusedlol")
+    }
 }
