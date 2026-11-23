@@ -1,0 +1,12 @@
+# Keep the build context small and the build cache stable
+.gradle
+build
+bin
+out
+.idea
+.vscode
+*.iml
+HELP.md
+Dockerfile
+.dockerignore
+compose.yaml
