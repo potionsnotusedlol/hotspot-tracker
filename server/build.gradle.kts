@@ -12,7 +12,8 @@ plugins {
 	id("com.diffplug.spotless") version "8.11.0"
 	id("com.github.spotbugs") version "6.5.13"
 	id("net.ltgt.errorprone") version "5.2.0"
-	id("org.sonarqube") version "7.5.0.8588"
+	id("org.owasp.dependencycheck") version "13.0.0"
+	id("org.sonarqube") version "7.6.0.18749"
 }
 
 group = "ru.moscow.hotspot-tracker"
@@ -162,11 +163,19 @@ tasks.check {
 	dependsOn(tasks.jacocoTestCoverageVerification)
 }
 
-sonar {
-	properties {
-		property("sonar.projectKey", "potionsnotusedlol_hotspot-tracker")
-		property("sonar.organization", "potionsnotusedlol")
-		property("sonar.host.url", "https://sonarcloud.io")
-		property("sonar.coverage.jacoco.xmlReportPaths", "build/reports/jacoco/test/jacocoTestReport.xml")
+// NFR-SEC-06: fail on known vulnerabilities with CVSS 7 or higher in what the application ships
+dependencyCheck {
+	failBuildOnCVSS = 7.0f
+	scanConfigurations = listOf("runtimeClasspath")
+	formats = listOf("HTML", "JSON")
+	nvd {
+		apiKey = System.getenv("NVD_API_KEY")
 	}
+}
+
+sonar {
+    properties {
+        property("sonar.projectKey", "potionsnotusedlol_hotspot-tracker")
+        property("sonar.organization", "potionsnotusedlol")
+    }
 }
