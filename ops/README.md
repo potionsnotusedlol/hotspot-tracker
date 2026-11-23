@@ -138,5 +138,5 @@ The init script runs only on the first start with an empty data volume. After ch
 ### Troubleshooting
 
 - **`address already in use` / a service stays in `Created`:** the host port is taken (often by a locally installed PostgreSQL or Redis). Change `POSTGRES_PORT`, `REDIS_PORT` or `MOCK_PORT` in `.env` and run `up -d` again.
-- **Mac with Apple Silicon:** the PostGIS image is published for amd64 only, so PostgreSQL runs under emulation. It works, just slower; keep "Use Rosetta for x86_64/amd64 emulation" enabled in Docker Desktop settings. The mock server is built for the host platform and needs no emulation.
+- **Mac with Apple Silicon:** the PostGIS image is published for amd64 only, so compose starts PostgreSQL with `platform: linux/x86_64` and Docker Desktop runs it under emulation. It works, just slower; keep "Use Rosetta for x86_64/amd64 emulation" enabled in Docker Desktop settings. The mock server and the server image are built for the host platform and need no emulation.
 - **Image pull fails or hangs:** Docker Hub may be slow or unreachable from some networks. Configure a registry mirror in the Docker daemon settings (`registry-mirrors` in `/etc/docker/daemon.json` or in Docker Desktop settings) and retry.

@@ -9,6 +9,8 @@ services:
     # PostgreSQL 18 + PostGIS 3.6. The tag does not include the PostgreSQL patch version,
     # so the digest pins the exact image.
     image: postgis/postgis:18-3.6@sha256:60f6ad1d21ea86a67d47780b9a0d1e1d200500f62b19293fa834d0dea80b8677
+    # PostGIS is published for linux/amd64 only; on Apple Silicon Docker Desktop runs it under Rosetta
+    platform: linux/x86_64
     restart: unless-stopped
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-hotspot}
