@@ -3,7 +3,7 @@
 # Base images are pinned by exact version and digest: change the tag and the digest together.
 
 # Build stage: compiles the application and splits the jar into layers
-FROM eclipse-temurin:25.0.5_8-jdk-alpine-3.24@sha256:c7c3d0bdf7f2bbc5a05a6712ed334d198360105634ea9adf76fca94f381b1e3f AS build
+FROM eclipse-temurin:27-jdk-alpine-3.24@sha256:3ce6707ba035480069ff65d12265a8806d74fe9fd761987d183dd86362def451 AS build
 WORKDIR /workspace
 
 # Extra Gradle/JVM options for the build, e.g. a proxy or -Djava.net.preferIPv4Stack=true
@@ -23,7 +23,7 @@ RUN --mount=type=cache,target=/root/.gradle \
     && mv "/extracted/application/$(basename "$jar")" /extracted/application/app.jar
 
 # Runtime stage: JRE only, non-root user
-FROM eclipse-temurin:25.0.5_8-jre-alpine-3.24@sha256:e1898fd6a11fc965a994d8ace186fd3585aeb636cf8f05f47a723fcfee0b0918
+FROM eclipse-temurin:27-jre-alpine-3.24@sha256:51f686a5322c0b762dff27e8e94b4b6582d7e71321d3a23b1f3c53b4078aabc5
 RUN addgroup -S -g 10001 app && adduser -S -D -H -u 10001 -G app -h /app app
 WORKDIR /app
 
