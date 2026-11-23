@@ -13,6 +13,7 @@ plugins {
 	id("com.github.spotbugs") version "6.5.13"
 	id("net.ltgt.errorprone") version "5.2.0"
 	id("org.owasp.dependencycheck") version "13.0.0"
+	id("org.sonarqube") version "7.6.0.18749"
 }
 
 group = "ru.moscow.hotspot-tracker"
@@ -170,4 +171,11 @@ dependencyCheck {
 	nvd {
 		apiKey = System.getenv("NVD_API_KEY")
 	}
+}
+
+sonar {
+    properties {
+        property("sonar.projectKey", "potionsnotusedlol_hotspot-tracker")
+        property("sonar.organization", "potionsnotusedlol")
+    }
 }
