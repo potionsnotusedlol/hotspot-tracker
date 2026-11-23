@@ -6,7 +6,7 @@ Secrets never go into git, logs, issues, PR comments or AI assistants (NFR-SEC-0
 
 | Environment | Storage |
 |---|---|
-| Local development | `.env` files, ignored by git. `ops/compose/.env.example` lists the variables with placeholder values |
+| Local development | One `.env` file for the whole repository: `ops/compose/.env`, ignored by git. All compose profiles read it; `ops/compose/.env.example` lists the variables with placeholder values |
 | GitHub Actions | Repository secrets or Environments, read through `${{ secrets.NAME }}` |
 | Stand | Environment variables on the host, readable only by the deploy user |
 
@@ -23,7 +23,7 @@ Secrets never go into git, logs, issues, PR comments or AI assistants (NFR-SEC-0
 | `SONAR_TOKEN` | SonarCloud | no | yes | no |
 | Android signing key and passwords | Release build | no | yes | no |
 
-Add a new secret to this table and to the matching `.env.example`, with a placeholder value.
+Add a new secret to this table and to `ops/compose/.env.example`, with a placeholder value. Do not add other `.env.example` files.
 
 ## Rules
 
