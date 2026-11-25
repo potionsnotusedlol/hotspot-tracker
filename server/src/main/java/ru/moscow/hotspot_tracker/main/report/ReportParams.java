@@ -1,13 +1,17 @@
 package ru.moscow.hotspot_tracker.main.report;
 
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.StringJoiner;
 import org.springframework.util.StringUtils;
-import org.springframework.web.util.UriComponentsBuilder;
 
 /**
  * Параметры отчёта. В базе хранятся строкой запроса вида accessPointId=1&okrug=…,
- * чтобы не тянуть сериализатор JSON в модуль отчётов.
+ * чтобы не тянуть сериализатор JSON в модуль отчётов. Имена и значения кодируются,
+ * поэтому символы &, =, +, % и # из названия округа не меняют разбор строки.
  */
 public record ReportParams(Long accessPointId, String okrug, String district, Integer days) {
 
@@ -36,32 +40,50 @@ public record ReportParams(Long accessPointId, String okrug, String district, In
     }
 
     String toQuery() {
-        MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+        StringJoiner query = new StringJoiner("&");
         if (accessPointId != null) {
-            params.add("accessPointId", accessPointId.toString());
+            query.add(pair("accessPointId", accessPointId.toString()));
         }
         if (StringUtils.hasText(okrug)) {
-            params.add("okrug", okrug);
+            query.add(pair("okrug", okrug));
         }
         if (StringUtils.hasText(district)) {
-            params.add("district", district);
+            query.add(pair("district", district));
         }
         if (days != null) {
-            params.add("days", days.toString());
+            query.add(pair("days", days.toString()));
         }
-        String query = UriComponentsBuilder.newInstance().queryParams(params).build().getQuery();
-        // Без параметров (например, сводный отчёт по Москве) getQuery() возвращает null, а в базе нужна строка
-        return query == null ? "" : query;
+        // Без параметров (например, сводный отчёт по Москве) строка пустая: в базе это допустимо
+        return query.toString();
     }
 
     static ReportParams fromQuery(String query) {
-        MultiValueMap<String, String> params = UriComponentsBuilder.newInstance()
-                .query(query == null ? "" : query).build().getQueryParams();
+        Map<String, String> params = new HashMap<>();
+        if (StringUtils.hasText(query)) {
+            for (String pair : query.split("&")) {
+                int equals = pair.indexOf('=');
+                String key = decode(equals < 0 ? pair : pair.substring(0, equals));
+                String value = equals < 0 ? "" : decode(pair.substring(equals + 1));
+                params.put(key, value);
+            }
+        }
         return new ReportParams(
-                parseLong(params.getFirst("accessPointId")),
-                params.getFirst("okrug"),
-                params.getFirst("district"),
-                parseInt(params.getFirst("days")));
+                parseLong(params.get("accessPointId")),
+                params.get("okrug"),
+                params.get("district"),
+                parseInt(params.get("days")));
+    }
+
+    private static String pair(String key, String value) {
+        return encode(key) + "=" + encode(value);
+    }
+
+    private static String encode(String value) {
+        return URLEncoder.encode(value, StandardCharsets.UTF_8);
+    }
+
+    private static String decode(String value) {
+        return URLDecoder.decode(value, StandardCharsets.UTF_8);
     }
 
     private static Long parseLong(String value) {
