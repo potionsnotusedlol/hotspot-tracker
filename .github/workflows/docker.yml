@@ -6,12 +6,16 @@ on:
   pull_request:
     paths:
       - server/**
+      # The image packages the web templates and static files
+      - client/**
       - ops/compose/**
       - .github/workflows/docker.yml
   push:
     branches: [master]
     paths:
       - server/**
+      # The image packages the web templates and static files
+      - client/**
       - ops/compose/**
       - .github/workflows/docker.yml
   workflow_dispatch:
