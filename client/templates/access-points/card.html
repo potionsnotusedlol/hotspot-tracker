@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:replace="~{layout/base :: layout(${point.name()}, ~{::main})}">
+<head>
+    <title>Точка доступа</title>
+</head>
+<body>
+<main id="main" class="main-content" tabindex="-1">
+    <div class="container">
+        <p><a href="/catalog" class="nav-link">← К каталогу</a></p>
+        <h1 th:text="${point.name()}">Точка доступа</h1>
+        <p class="note">Все показатели нагрузки — расчётная оценка, а не измеренный трафик.</p>
+
+        <div class="toolbar">
+            <form sec:authorize="isAuthenticated()" th:action="@{/reports}" method="post">
+                <input type="hidden" name="type" value="ACCESS_POINT">
+                <input type="hidden" name="accessPointId" th:value="${point.id()}">
+                <button type="submit" class="btn btn-outline">Скачать отчёт по точке (Excel)</button>
+            </form>
+            <p sec:authorize="!isAuthenticated()"><a href="/login">Войдите</a>, чтобы скачать отчёт по точке.</p>
+        </div>
+
+        <div class="card-grid">
+            <section class="panel" aria-labelledby="facts-title">
+                <h2 id="facts-title">Основные данные</h2>
+                <dl class="facts">
+                    <dt>Адрес</dt>
+                    <dd th:text="${point.address()}">Адрес</dd>
+                    <dt>Округ</dt>
+                    <dd th:text="${point.okrug()}">Округ</dd>
+                    <dt>Район</dt>
+                    <dd th:text="${point.district()}">Район</dd>
+                    <dt>Ближайший транспорт</dt>
+                    <dd th:text="${point.nearestTransport().label()}">Транспорт</dd>
+                    <dt>До остановки</dt>
+                    <dd th:text="${point.distanceToStopM() + ' м'}">0 м</dd>
+                    <dt>Нагрузка (оценка)</dt>
+                    <dd>
+                        <span th:text="${#numbers.formatDecimal(point.estimatedLoad(), 1, 0)}">0</span> чел.,
+                        <span th:text="${point.loadLevel().label()}">уровень</span>
+                    </dd>
+                </dl>
+            </section>
+
+            <section class="panel" aria-labelledby="map-title">
+                <h2 id="map-title">Расположение</h2>
+                <div class="map-canvas" role="region" data-map="point"
+                     th:attr="data-lat=${point.latitude()},data-lon=${point.longitude()},data-name=${point.name()},aria-label='Карта: ' + ${point.name()}"></div>
+            </section>
+
+            <section class="panel" aria-labelledby="stops-title">
+                <h2 id="stops-title">Ближайшие остановки</h2>
+                <ul class="stop-list" th:unless="${stops.empty}">
+                    <li th:each="s : ${stops}">
+                        <strong th:text="${s.transportType().label()}">Транспорт</strong>:
+                        <span th:text="${s.name()}">Остановка</span>,
+                        <span th:text="${s.distanceM() + ' м'}">0 м</span>
+                    </li>
+                </ul>
+                <p th:if="${stops.empty}">Остановки рядом не найдены.</p>
+            </section>
+        </div>
+
+        <section class="panel" aria-labelledby="load-title">
+            <h2 id="load-title">Нагрузка по часам (оценка)</h2>
+
+            <div class="card-grid">
+                <div>
+                    <h3>Будни</h3>
+                    <div class="chart-box">
+                        <canvas data-chart="line" data-label="Будни, чел. (оценка)" role="img"
+                                th:attr="data-labels=${hourLabels},data-values=${weekdayValues},aria-label='График нагрузки в будни по часам'"></canvas>
+                    </div>
+                    <p class="note">Пик: <span th:text="${weekdayPeak}">нет данных</span></p>
+                </div>
+                <div>
+                    <h3>Выходные</h3>
+                    <div class="chart-box">
+                        <canvas data-chart="line" data-label="Выходные, чел. (оценка)" role="img"
+                                th:attr="data-labels=${hourLabels},data-values=${weekendValues},aria-label='График нагрузки в выходные по часам'"></canvas>
+                    </div>
+                    <p class="note">Пик: <span th:text="${weekendPeak}">нет данных</span></p>
+                </div>
+            </div>
+        </section>
+    </div>
+</main>
+</body>
+</html>

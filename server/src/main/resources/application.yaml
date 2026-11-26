@@ -1,3 +1,21 @@
 spring:
   application:
     name: main
+  jpa:
+    open-in-view: false
+  thymeleaf:
+    # Шаблоны лежат в client/, а не в classpath. Путь задаётся переменной, по умолчанию ../client от каталога server/
+    prefix: file:${WEB_CLIENT_DIR:../client}/templates/
+  web:
+    resources:
+      # Статика из client/static; webjars (htmx, chart.js, leaflet) отдаются отдельно
+      static-locations: file:${WEB_CLIENT_DIR:../client}/static/
+
+hotspot:
+  web:
+    # true: веб работает на заглушках портов (web/port). Модуль, который подключил
+    # свою реализацию порта, ставит false, иначе будет два бина одного интерфейса
+    placeholders: ${WEB_PLACEHOLDERS:true}
+  reports:
+    # Готовые Excel-файлы, по умолчанию в var/ в корне репозитория
+    storage-dir: ${REPORTS_DIR:../var/reports}

@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/base :: layout('Профиль', ~{::main})}">
+<head>
+    <title>Профиль</title>
+</head>
+<body>
+<main id="main" class="main-content" tabindex="-1">
+    <div class="container page-narrow">
+        <h1>Профиль</h1>
+        <dl class="facts">
+            <dt>Email</dt>
+            <dd th:text="${email}">user@example.com</dd>
+            <dt>Роли</dt>
+            <dd th:text="${roles}">USER</dd>
+            <dt>Telegram</dt>
+            <dd>Привязка появится вместе с Telegram-ботом.</dd>
+        </dl>
+        <p class="form-actions"><a href="/reports">Мои отчёты</a></p>
+    </div>
+</main>
+</body>
+</html>

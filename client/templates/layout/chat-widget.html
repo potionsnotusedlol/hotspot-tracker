@@ -1,0 +1,14 @@
+<section class="chat-widget" th:fragment="widget" aria-labelledby="chat-title">
+    <h2 id="chat-title" class="chat-title">Чат-бот</h2>
+
+    <div id="chat-messages" class="chat-messages" role="log" aria-live="polite">
+        <p class="chat-hint">Задайте вопрос о точках доступа, например: «сколько точек в Тверском районе».</p>
+    </div>
+
+    <form class="chat-form" hx-post="/chat/widget" hx-target="#chat-messages" hx-swap="beforeend">
+        <label for="chat-input" class="visually-hidden">Сообщение</label>
+        <input id="chat-input" name="message" type="text" maxlength="500" required
+               placeholder="Сообщение">
+        <button type="submit" class="btn btn-primary">Отправить</button>
+    </form>
+</section>

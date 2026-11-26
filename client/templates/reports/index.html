@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:replace="~{layout/base :: layout('Отчёты', ~{::main})}">
+<head>
+    <title>Отчёты</title>
+</head>
+<body>
+<main id="main" class="main-content" tabindex="-1">
+    <div class="container">
+        <h1>Отчёты в Excel</h1>
+        <p class="note">Отчёт формируется в фоне. Статус обновляется сам, готовый файл хранится 7 суток.</p>
+
+        <div th:if="${message != null}" class="alert alert-success" role="status" th:text="${message}">Готово</div>
+        <div th:if="${error != null}" class="alert alert-error" role="alert" th:text="${error}">Ошибка</div>
+
+        <form id="report-form" class="filters" th:action="@{/reports}" method="post"
+              hx-post="/reports" hx-target="#report-list" hx-swap="outerHTML">
+
+            <div class="filter-field">
+                <label for="r-type">Тип отчёта</label>
+                <select id="r-type" name="type" required>
+                    <option th:each="t : ${reportTypes}" th:value="${t}" th:text="${t.label()}"></option>
+                </select>
+            </div>
+
+            <div class="filter-field">
+                <label for="r-point">Номер точки (для карточки)</label>
+                <input id="r-point" type="number" min="1" name="accessPointId">
+            </div>
+
+            <div class="filter-field">
+                <label for="r-okrug">Округ (для отчёта по району)</label>
+                <input id="r-okrug" type="text" name="okrug" placeholder="например, Центральный округ">
+            </div>
+
+            <div class="filter-field">
+                <label for="r-district">Район (необязательно)</label>
+                <input id="r-district" type="text" name="district">
+            </div>
+
+            <div class="filter-field" sec:authorize="hasRole('ADMIN')">
+                <label for="r-days">Период для отчёта об использовании, дней</label>
+                <input id="r-days" type="number" min="1" max="365" name="days" value="30">
+            </div>
+
+            <div class="filter-actions">
+                <button type="submit" class="btn btn-primary">Создать отчёт</button>
+            </div>
+        </form>
+
+        <h2 class="section-title">Мои отчёты</h2>
+        <th:block th:replace="~{reports/list :: list}"></th:block>
+    </div>
+</main>
+</body>
+</html>

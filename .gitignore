@@ -36,3 +36,9 @@ ops/testdata-generator/output/
 # Logs
 *.log
 logs/
+
+# Готовые отчёты и локальные файлы
+var/
+
+# Вложенный репозиторий с локальными данными (не часть проекта)
+hotspot-tracker/
