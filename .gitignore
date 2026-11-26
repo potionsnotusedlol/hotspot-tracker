@@ -1,21 +1,39 @@
 .DS_Store
 Thumbs.db
+ehthumbs.db
 desktop.ini
+
+# Временные файлы и резервные копии
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+*.bak
+*.orig
+*.rej
+/.cache/
+/tmp/
+/temp/
 
 # IDE
 .idea/
 *.iml
 *.iws
+*.ipr
 out/
 .vscode/*
 !.vscode/extensions.json
 .metadata/
 
-# Java / Gradle
+# Java / Kotlin / Gradle
 .gradle/
+.kotlin/
 build/
 !gradle/wrapper/gradle-wrapper.jar
 *.class
+*.hprof
+*.jfr
 hs_err_pid*.log
 replay_pid*.log
 local.properties
