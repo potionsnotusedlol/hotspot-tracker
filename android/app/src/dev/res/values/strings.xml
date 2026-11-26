@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="mock_access_title">Подключение к тестовому серверу</string>
+    <string name="mock_access_description">Каталог находится на вашем компьютере. Разрешите доступ к локальной сети, чтобы загрузить данные на эмулятор.</string>
+    <string name="allow_access">Разрешить доступ</string>
+    <string name="open_settings">Открыть настройки</string>
+</resources>

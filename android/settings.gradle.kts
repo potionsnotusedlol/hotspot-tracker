@@ -27,4 +27,4 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "LineAccess"
-include(":api")
+include(":app", ":api")
