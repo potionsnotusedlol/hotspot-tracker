@@ -1,6 +1,24 @@
-local.properties
+# Локальные файлы SDK, эмулятора и нативной сборки
+/.android/
+/.cache/
+/tmp/
+/temp/
 .cxx/
 .externalNativeBuild/
-captures/
+
+# Экспортированные сборки и их служебные файлы
 *.apk
 *.aab
+*.apks
+*.idsig
+*.apk.dm
+output-metadata.json
+
+# Снимки экрана и записи профилировщика
+captures/
+*.trace
+*.perfetto-trace
+
+# Локальные настройки подписи
+keystore.properties
+signing.properties

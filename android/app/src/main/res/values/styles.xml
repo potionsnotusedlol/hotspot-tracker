@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.LineAccess" parent="@android:style/Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">#F5F8F8</item>
+        <item name="android:fontFamily">sans</item>
+        <item name="android:colorAccent">#006A70</item>
+    </style>
+</resources>

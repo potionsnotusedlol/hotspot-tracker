@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name" translatable="false">LineAccess</string>
+    <string name="title_wifi">Wi-Fi Москвы</string>
+    <string name="catalog_total">Точек доступа в каталоге</string>
+    <string name="mock_source">Данные тестового сервера</string>
+    <string name="catalog_loading">Загружаем данные каталога…</string>
+    <string name="refresh">Обновить</string>
+    <string name="retry">Повторить</string>
+    <string name="error_network">Не удалось связаться с сервером. Проверьте подключение.</string>
+    <string name="error_request">Сервер отклонил запрос каталога.</string>
+    <string name="error_sign_in">Для доступа к каталогу требуется вход.</string>
+    <string name="error_session">Срок действия сеанса истёк.</string>
+    <string name="error_rate_limit">Слишком много запросов. Попробуйте ещё раз чуть позже.</string>
+    <string name="error_response">Не удалось прочитать данные каталога.</string>
+    <string name="error_server">Каталог временно недоступен. Попробуйте ещё раз позже.</string>
+    <string name="error_configuration">В этой сборке ещё не задан адрес сервера.</string>
+</resources>
