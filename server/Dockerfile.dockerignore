@@ -1,0 +1,9 @@
+# Build context of server/Dockerfile is the repository root: send only what the build needs.
+*
+!server/gradlew
+!server/settings.gradle.kts
+!server/build.gradle.kts
+!server/gradle/
+!server/src/
+!client/
+client/**/node_modules

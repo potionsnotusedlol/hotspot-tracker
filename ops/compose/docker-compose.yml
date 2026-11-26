@@ -54,7 +54,9 @@ services:
   app:
     profiles: [app]
     build:
-      context: ../../server
+      # The repository root: the image also needs client/ (templates and static files)
+      context: ../..
+      dockerfile: server/Dockerfile
     image: hotspot-server:local
     restart: unless-stopped
     environment:
